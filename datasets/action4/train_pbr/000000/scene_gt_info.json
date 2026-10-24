@@ -1,0 +1,402 @@
+{
+  "0": [
+    {
+      "bbox_obj": [
+        198,
+        165,
+        234,
+        183
+      ],
+      "bbox_visib": [
+        198,
+        165,
+        234,
+        183
+      ],
+      "px_count_all": 30121,
+      "px_count_valid": 30121,
+      "px_count_visib": 30121,
+      "visib_fract": 1.0
+    }
+  ],
+  "1": [
+    {
+      "bbox_obj": [
+        216,
+        153,
+        223,
+        166
+      ],
+      "bbox_visib": [
+        216,
+        153,
+        223,
+        166
+      ],
+      "px_count_all": 27130,
+      "px_count_valid": 27130,
+      "px_count_visib": 27130,
+      "visib_fract": 1.0
+    }
+  ],
+  "2": [
+    {
+      "bbox_obj": [
+        205,
+        77,
+        279,
+        312
+      ],
+      "bbox_visib": [
+        205,
+        77,
+        279,
+        312
+      ],
+      "px_count_all": 48604,
+      "px_count_valid": 48604,
+      "px_count_visib": 48604,
+      "visib_fract": 1.0
+    }
+  ],
+  "3": [
+    {
+      "bbox_obj": [
+        236,
+        141,
+        244,
+        212
+      ],
+      "bbox_visib": [
+        236,
+        141,
+        244,
+        212
+      ],
+      "px_count_all": 44781,
+      "px_count_valid": 44781,
+      "px_count_visib": 44781,
+      "visib_fract": 1.0
+    }
+  ],
+  "4": [
+    {
+      "bbox_obj": [
+        271,
+        130,
+        144,
+        235
+      ],
+      "bbox_visib": [
+        271,
+        130,
+        144,
+        235
+      ],
+      "px_count_all": 24643,
+      "px_count_valid": 24643,
+      "px_count_visib": 24643,
+      "visib_fract": 1.0
+    }
+  ],
+  "5": [
+    {
+      "bbox_obj": [
+        208,
+        96,
+        206,
+        248
+      ],
+      "bbox_visib": [
+        208,
+        96,
+        206,
+        248
+      ],
+      "px_count_all": 30549,
+      "px_count_valid": 30549,
+      "px_count_visib": 30549,
+      "visib_fract": 1.0
+    }
+  ],
+  "6": [
+    {
+      "bbox_obj": [
+        234,
+        170,
+        187,
+        172
+      ],
+      "bbox_visib": [
+        234,
+        170,
+        187,
+        172
+      ],
+      "px_count_all": 20952,
+      "px_count_valid": 20952,
+      "px_count_visib": 20952,
+      "visib_fract": 1.0
+    }
+  ],
+  "7": [
+    {
+      "bbox_obj": [
+        231,
+        114,
+        184,
+        274
+      ],
+      "bbox_visib": [
+        231,
+        114,
+        184,
+        274
+      ],
+      "px_count_all": 32790,
+      "px_count_valid": 32790,
+      "px_count_visib": 32790,
+      "visib_fract": 1.0
+    }
+  ],
+  "8": [
+    {
+      "bbox_obj": [
+        151,
+        101,
+        313,
+        270
+      ],
+      "bbox_visib": [
+        151,
+        101,
+        313,
+        270
+      ],
+      "px_count_all": 53180,
+      "px_count_valid": 53180,
+      "px_count_visib": 53180,
+      "visib_fract": 1.0
+    }
+  ],
+  "9": [
+    {
+      "bbox_obj": [
+        182,
+        124,
+        254,
+        246
+      ],
+      "bbox_visib": [
+        182,
+        124,
+        254,
+        246
+      ],
+      "px_count_all": 37426,
+      "px_count_valid": 37426,
+      "px_count_visib": 37426,
+      "visib_fract": 1.0
+    }
+  ],
+  "10": [
+    {
+      "bbox_obj": [
+        182,
+        113,
+        295,
+        258
+      ],
+      "bbox_visib": [
+        182,
+        113,
+        295,
+        258
+      ],
+      "px_count_all": 46192,
+      "px_count_valid": 46192,
+      "px_count_visib": 46192,
+      "visib_fract": 1.0
+    }
+  ],
+  "11": [
+    {
+      "bbox_obj": [
+        181,
+        139,
+        288,
+        260
+      ],
+      "bbox_visib": [
+        181,
+        139,
+        288,
+        260
+      ],
+      "px_count_all": 44871,
+      "px_count_valid": 44871,
+      "px_count_visib": 44871,
+      "visib_fract": 1.0
+    }
+  ],
+  "12": [
+    {
+      "bbox_obj": [
+        233,
+        126,
+        218,
+        230
+      ],
+      "bbox_visib": [
+        233,
+        126,
+        218,
+        230
+      ],
+      "px_count_all": 27731,
+      "px_count_valid": 27731,
+      "px_count_visib": 27731,
+      "visib_fract": 1.0
+    }
+  ],
+  "13": [
+    {
+      "bbox_obj": [
+        204,
+        155,
+        235,
+        198
+      ],
+      "bbox_visib": [
+        204,
+        155,
+        235,
+        198
+      ],
+      "px_count_all": 39855,
+      "px_count_valid": 39855,
+      "px_count_visib": 39855,
+      "visib_fract": 1.0
+    }
+  ],
+  "14": [
+    {
+      "bbox_obj": [
+        257,
+        147,
+        119,
+        225
+      ],
+      "bbox_visib": [
+        257,
+        147,
+        119,
+        225
+      ],
+      "px_count_all": 21931,
+      "px_count_valid": 21931,
+      "px_count_visib": 21931,
+      "visib_fract": 1.0
+    }
+  ],
+  "15": [
+    {
+      "bbox_obj": [
+        248,
+        144,
+        142,
+        187
+      ],
+      "bbox_visib": [
+        248,
+        144,
+        142,
+        187
+      ],
+      "px_count_all": 15469,
+      "px_count_valid": 15469,
+      "px_count_visib": 15469,
+      "visib_fract": 1.0
+    }
+  ],
+  "16": [
+    {
+      "bbox_obj": [
+        214,
+        159,
+        208,
+        172
+      ],
+      "bbox_visib": [
+        214,
+        159,
+        208,
+        172
+      ],
+      "px_count_all": 23951,
+      "px_count_valid": 23951,
+      "px_count_visib": 23951,
+      "visib_fract": 1.0
+    }
+  ],
+  "17": [
+    {
+      "bbox_obj": [
+        177,
+        104,
+        283,
+        283
+      ],
+      "bbox_visib": [
+        177,
+        104,
+        283,
+        283
+      ],
+      "px_count_all": 41923,
+      "px_count_valid": 41923,
+      "px_count_visib": 41923,
+      "visib_fract": 1.0
+    }
+  ],
+  "18": [
+    {
+      "bbox_obj": [
+        174,
+        102,
+        307,
+        241
+      ],
+      "bbox_visib": [
+        174,
+        102,
+        307,
+        241
+      ],
+      "px_count_all": 50283,
+      "px_count_valid": 50283,
+      "px_count_visib": 50283,
+      "visib_fract": 1.0
+    }
+  ],
+  "19": [
+    {
+      "bbox_obj": [
+        183,
+        117,
+        307,
+        201
+      ],
+      "bbox_visib": [
+        183,
+        117,
+        307,
+        201
+      ],
+      "px_count_all": 53432,
+      "px_count_valid": 53432,
+      "px_count_visib": 53432,
+      "visib_fract": 1.0
+    }
+  ]
+}
