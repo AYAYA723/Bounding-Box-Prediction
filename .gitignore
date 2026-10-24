@@ -15,7 +15,6 @@
 
 /corner_prediction/*
 !/corner_prediction/*.py
-!/corner_prediction/*.ipynb
 !/corner_prediction/README.md
 
 /data_prep/*
@@ -43,6 +42,7 @@
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
+*.ipynb
 .env
 .env.*
 *.pt

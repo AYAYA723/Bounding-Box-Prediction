@@ -2,4 +2,3 @@
 *.py text eol=lf
 *.md text eol=lf
 *.json text eol=lf
-*.ipynb text eol=lf
