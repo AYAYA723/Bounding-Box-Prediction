@@ -33,7 +33,8 @@ def main():
     (run_dir / "config.json").write_text(json.dumps({
         "epochs": num_epochs, "batch_size": batch_size, "learning_rate": learning_rate,
         "seed": 42, "train_images": len(dataset), "loss": "coarse + 2*fine",
-        "coordinate_decoder": "pre-Sigmoid logit soft-argmax, temperature=1",
+        "coordinate_decoder": "pre-Sigmoid logit soft-argmax, temperature=0.25",
+        "decoder_temperature": model.decoder_temperature,
         "normalization": "2*xy/[W,H]-1"}, indent=2) + "\n", encoding="utf-8")
     log = (run_dir / "history.csv").open("w", newline="", encoding="utf-8")
     writer = csv.writer(log)

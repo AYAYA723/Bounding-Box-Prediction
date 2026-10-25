@@ -5,9 +5,10 @@ from predict_corner.supervision import spatial_soft_argmax
 
 
 class TransformerCornerPredictor(nn.Module):
-    def __init__(self, num_corners=8, hidden_dim=384, num_layers=6, num_heads=6):
+    def __init__(self, num_corners=8, hidden_dim=384, num_layers=6, num_heads=6, decoder_temperature=0.25):
         super().__init__()
         self.hidden_dim = hidden_dim
+        self.decoder_temperature = decoder_temperature
 
         self.patch_embed = nn.Conv2d(3, hidden_dim, kernel_size=32, stride=32)
         self.position_embedding = nn.Parameter(torch.randn(1, 300, hidden_dim) * 0.02)
@@ -59,5 +60,5 @@ class TransformerCornerPredictor(nn.Module):
         features = self.decoder(features)
         logits = self.heatmap_head[0](features)
         heatmaps = self.heatmap_head[1](logits)  # (N, 8, 480, 640)
-        corners_xy = spatial_soft_argmax(logits)  # (N, 8, 2)
+        corners_xy = spatial_soft_argmax(logits, self.decoder_temperature)  # (N, 8, 2)
         return heatmaps, corners_xy

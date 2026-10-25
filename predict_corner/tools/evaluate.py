@@ -45,7 +45,7 @@ def evaluate(model, dataset, indices, device, batch_size=2):
         "total_loss": total_loss / len(indices),
         "heatmap_loss": total_coarse / len(indices),
         "fine_loss": total_fine / len(indices),
-        "coordinate_decoder": "spatial soft-argmax over pre-Sigmoid logits, temperature=1",
+        "coordinate_decoder": f"spatial soft-argmax over pre-Sigmoid logits, temperature={model.decoder_temperature:g}",
         "mean_corner_error_px": values.mean().item(),
         "median_corner_error_px": values.median().item(),
         "within_5px_percent": (values <= 5).float().mean().item() * 100,
@@ -84,12 +84,13 @@ def main():
     parser.add_argument("--weights", type=Path, default=root / "predict_corner/checkpoints/corner_predictor_paper.pt")
     parser.add_argument("--output", type=Path, default=root / "results/paper_evaluation")
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--temperature", type=float, default=0.25)
     args = parser.parse_args()
     torch.set_num_threads(4)
     device = torch.device(args.device)
     dataset = CornerDataset(root / "datasets/action4/train_pbr/000000")
     model_classes = {"resnet": CornerPredictor, "vit": TransformerCornerPredictor}
-    model = model_classes[args.architecture]().to(device)
+    model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
     model.load_state_dict(torch.load(args.weights, map_location=device, weights_only=True))
     report = evaluate(model, dataset, list(range(len(dataset))), device)
     save_preview(report, dataset.scene_dir, args.output)

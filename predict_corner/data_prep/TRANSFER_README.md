@@ -4,6 +4,7 @@
 ## 包含内容
 - 网络、Dataset、loss、训练、预测、调参、单测和数据准备代码。
 - `predict_corner/checkpoints/`：本地已保存的权重。三个历史权重 `corner_predictor.pt`、`corner_predictor_tuned.pt`、`corner_predictor_transformer.pt` 来自 coarse-only 训练。
+- `corner_predictor_fixed.pt`：当前原架构、T=0.25 的预训练加外观增强候选，`corner_predictor_paper.pt` 为其当前别名，同名 JSON 记录配置。旧完整监督 T=1 权重备份为 `corner_predictor_paper_T1.pt`，复查时使用 `--temperature 1`。
 - `predict_corner/docs/` 与 `results/`：实验条件、逐轮日志、指标和预览。完整生成视频单独打包。
 - 20 张合成 RGB 与 JSON 标注；24 张视频原帧、48 张手工粗裁剪及裁剪位置记录。
 - `head_left_rgb_raw.mp4` 与 `相机资产/0468e0a404ddc50b1663be3cac636dd8.glb`：原始视频与生成模型。

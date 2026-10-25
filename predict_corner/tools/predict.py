@@ -21,11 +21,12 @@ def main():
     parser.add_argument("--weights", type=Path,
                         default=project_dir / "predict_corner/checkpoints/corner_predictor_paper.pt")
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--temperature", type=float, default=0.25)
     args = parser.parse_args()
 
     device = torch.device(args.device)
     model_classes = {"resnet": CornerPredictor, "vit": TransformerCornerPredictor}
-    model = model_classes[args.architecture]().to(device)
+    model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
     model.load_state_dict(torch.load(args.weights, map_location=device, weights_only=True))
     model.eval()
     transform = transforms.Compose([
@@ -70,7 +71,7 @@ def main():
     sheet.save(args.output / "predictions_contact_sheet.jpg", quality=94)
     (args.output / "predictions.json").write_text(json.dumps({
         "weights": str(args.weights), "device": args.device,
-        "coordinate_decoder": "spatial soft-argmax over logits, temperature=1",
+        "coordinate_decoder": f"spatial soft-argmax over logits, temperature={model.decoder_temperature:g}",
         "note": "Qualitative predictions; heatmap peaks are responses, not calibrated confidence. Manual video crops are not corner ground truth.",
         "predictions": results}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Predicted {len(results)} images. Results: {args.output}")

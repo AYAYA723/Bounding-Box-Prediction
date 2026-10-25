@@ -20,11 +20,12 @@ def main():
     parser.add_argument("--weights", type=Path, default=root / "predict_corner/checkpoints/corner_predictor_paper.pt")
     parser.add_argument("--output", type=Path, default=root / "results/paper_full_video")
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--temperature", type=float, default=0.25)
     args = parser.parse_args()
     torch.set_num_threads(4)
     device = torch.device(args.device)
     model_classes = {"resnet": CornerPredictor, "vit": TransformerCornerPredictor}
-    model = model_classes[args.architecture]().to(device)
+    model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
     model.load_state_dict(torch.load(args.weights, map_location=device, weights_only=True))
     model.eval()
     output = args.output
@@ -113,7 +114,7 @@ def main():
               "fps": fps, "duration_seconds": count / fps, "target_inferences": count * 2,
               "output_video_frame_counts": encoded_counts, "elapsed_seconds": time.perf_counter() - start,
               "roi_method": "linear interpolation of 24 manually selected left/right crop rectangles; no automatic detector",
-              "coordinate_decoder": "spatial soft-argmax over logits, temperature=1",
+              "coordinate_decoder": f"spatial soft-argmax over logits, temperature={model.decoder_temperature:g}",
               "video_ground_truth_available": False}
     (output / "run.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2), flush=True)

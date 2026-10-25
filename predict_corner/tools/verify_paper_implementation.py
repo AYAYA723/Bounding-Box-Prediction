@@ -14,14 +14,14 @@ from predict_corner.transformer_model import TransformerCornerPredictor
 def main():
     torch.set_num_threads(4)
     root = Path(__file__).resolve().parents[2]
-    output = root / "results/paper_supervision_implementation"
+    output = root / "results/decoder_fix_20261025/implementation_check"
     output.mkdir(parents=True, exist_ok=True)
     device = torch.device("cuda")
     dataset = CornerDataset(root / "datasets/action4/train_pbr/000000")
     image, maps, target = dataset[0]
     x, y, target = image[None].to(device), maps[None].to(device), target[None].to(device)
     criterion = BoxDreamerLoss()
-    report = {"loss": "coarse + 2*fine", "decoder": "logit soft-argmax, temperature=1",
+    report = {"loss": "coarse + 2*fine", "decoder": "logit soft-argmax, temperature=0.25",
               "normalization": "2*xy/[W,H]-1", "architectures": {}}
     for name, model_class in (("resnet", CornerPredictor), ("vit", TransformerCornerPredictor)):
         torch.manual_seed(42)

@@ -13,11 +13,11 @@
 `model(x)` 返回 `(heatmaps,corners_xy)`，分别为 `(N,8,H,W)` 和 `(N,8,2)`。Dataset 返回 `(image,target_heatmaps,target_corners_xy)`，GT 坐标来自已有 `.npz` 的浮点八角点，编号不变。
 对每个通道的 pre-Sigmoid logits `A`，先做空间 softmax，再求像素坐标期望：
 ```text
-P[y,x] = exp(A[y,x]) / sum_yx exp(A[y,x])
+P[y,x] = exp(A[y,x]/T) / sum_yx exp(A[y,x]/T)
 x_hat = sum_yx x * P[y,x]
 y_hat = sum_yx y * P[y,x]
 ```
-该 soft-argmax 使用温度 1，无可学习参数；参考 [Kornia 的 spatial soft-argmax](https://kornia.readthedocs.io/en/latest/geometry.subpix.html)。论文没有给出可微坐标提取的算子细节，这一步是为实现完整 fine 梯度补充的实现，不标作官方逐行复现。softmax 作用在 logits 上，热图监督仍作用在 Sigmoid 后的值上。
+当前 soft-argmax 使用温度 `T=0.25`，无可学习参数；参考 [Kornia 的 spatial soft-argmax](https://kornia.readthedocs.io/en/latest/geometry.subpix.html)。原 T=1 的 GT 回代误差约 33 px，现全部 160 个角点平均 0.201 px、最大 0.286 px。温度是本项目的兼容性修正，论文没有给出该可微算子的细节，因此不标作官方逐行复现。softmax 作用在 logits 上，热图监督仍作用在 Sigmoid 后的值上。
 两个 loss 使用 PyTorch SmoothL1 默认 `beta=1`、`reduction="mean"`：
 ```text
 coarse = SmoothL1(pred_heatmaps, target_heatmaps)
@@ -27,7 +27,7 @@ total = coarse + 2.0 * fine
 ```
 坐标量纲参考官方角点恢复函数的 `[W,H]` 归一化约定。当前图像为非方形，明确用宽度归一化 x、高度归一化 y；不把像素坐标直接与归一化坐标混算。训练、图像评估与视频推理共用同一 soft-argmax，推理路径没有换回 argmax/topk。
 
-## 实现检查
+## 初版实现检查（T=1）
 `test_supervision.py` 的 8 项测试通过，覆盖非方形坐标、已知峰值、loss 数值与权重、fine 独立梯度及有限差分梯度校验。ResNet 与 ViT 的真实图像前向/反向均通过，fine 单独产生的 encoder 梯度范数分别约为 `0.01157`、`0.00620`。
 另对一张合成图执行 200 次更新：训练模式角点均值误差由 `122.65 px` 降到 `20.37 px`，eval 模式最终为 `25.17 px`。这是实现检查，单图尚未精确拟合，不作为验证集或视频精度。各步 total/coarse/fine 和像素误差保存为 `single_image_history.csv`。
 

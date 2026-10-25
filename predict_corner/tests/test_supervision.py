@@ -1,11 +1,21 @@
 import unittest
 
 import torch
+import numpy as np
 
 from predict_corner.supervision import BoxDreamerLoss, normalize_coordinates, spatial_soft_argmax
+from predict_corner.data_prep.generate_corner_heatmaps import make_corner_heatmaps
 
 
 class SupervisionTests(unittest.TestCase):
+    def test_target_heatmap_round_trip_at_training_resolution(self):
+        corners = np.array([[195.25, 125.75], [420.4, 130.2], [460.6, 300.8], [170.7, 320.3],
+                            [205.1, 170.9], [415.8, 180.2], [445.3, 350.7], [190.4, 365.6]])
+        heatmaps, _, _ = make_corner_heatmaps(corners, (640, 480))
+        logits = torch.logit(torch.from_numpy(heatmaps)[None].clamp(1e-6, 1-1e-6))
+        decoded = spatial_soft_argmax(logits)[0].numpy()
+        self.assertLess(np.linalg.norm(decoded - corners, axis=-1).max(), 0.5)
+
     def test_uniform_map_center_on_non_square_image(self):
         logits = torch.zeros(2, 8, 5, 9)
         xy = spatial_soft_argmax(logits)

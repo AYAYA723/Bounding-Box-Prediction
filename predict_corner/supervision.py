@@ -2,10 +2,10 @@ import torch
 from torch import nn
 
 
-def spatial_soft_argmax(logits):
+def spatial_soft_argmax(logits, temperature=0.25):
     """Extract differentiable (x, y) pixel coordinates from pre-Sigmoid logits."""
     N, C, H, W = logits.shape
-    probabilities = logits.flatten(start_dim=2).softmax(dim=-1).reshape(N, C, H, W)
+    probabilities = (logits.flatten(start_dim=2) / temperature).softmax(dim=-1).reshape(N, C, H, W)
     xs = torch.arange(W, device=logits.device, dtype=logits.dtype)
     ys = torch.arange(H, device=logits.device, dtype=logits.dtype)
     x = (probabilities.sum(dim=2) * xs).sum(dim=-1)

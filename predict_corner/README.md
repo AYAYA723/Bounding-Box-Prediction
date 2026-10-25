@@ -28,7 +28,16 @@ python -m predict_corner.train
 [dataset.py](dataset.py) 返回 `(image,heatmaps,corners_xy)`。RGB 做 ToTensor 和 ImageNet normalization，保持原始分辨率；热图标签保持 `[0,1]`。热图生成方式见 [heatmaps_README.md](data_prep/heatmaps_README.md)。
 [model.py](model.py) 将 `(N,3,480,640)` 编码为 `(N,512,15,20)`，五次上采样恢复到 `(N,16,480,640)`，再输出 `(N,8,480,640)`。`weights=None` 表示随机初始化。
 [transformer_model.py](transformer_model.py) 使用 32×32 patch、384 维、6 层、6 heads 的小型 ViT，随后投影到 512 个通道并接相同 decoder。
-两个模型均返回 `(heatmaps,corners_xy)`。坐标来自 pre-Sigmoid logits 的空间 soft-argmax，训练与推理共用此算法。[supervision.py](supervision.py) 计算 `coarse + 2*fine`，fine 比较按 `[W,H]` 归一化后的预测与 GT 坐标。实现细节见 [BOXDREAMER_ALIGNMENT.md](docs/BOXDREAMER_ALIGNMENT.md)。
+两个模型均返回 `(heatmaps,corners_xy)`。坐标来自 pre-Sigmoid logits 的空间 soft-argmax，当前默认温度为 `0.25`，训练与推理共用此设置。GT 热图回代的全部 160 个角点误差均小于 0.5 px。[supervision.py](supervision.py) 仍计算 `coarse + 2*fine`，fine 比较按 `[W,H]` 归一化后的预测与 GT 坐标。实现细节见 [BOXDREAMER_ALIGNMENT.md](docs/BOXDREAMER_ALIGNMENT.md)。
+
+## 小改动修复与拟合检查
+保留原来的 ResNet/ViT、转置卷积 decoder 和 BatchNorm。预训练只改变初始化；`AppearanceDataset` 只改变背景、颜色和轻微模糊，不移动角点。实验脚本放在 `tools/`：
+```powershell
+python -m predict_corner.tools.fit --images 1 --steps 2000 --output results/new_single_image
+python -m predict_corner.tools.fit --images 16 --steps 5000 --eval-every 200 --pretrained --augment --target-error 2 --max-error 5 --output results/new_pretrained_appearance
+```
+`fit.py` 记录每一步的温度、学习率、三项 loss、定期训练/验证误差；本组拟合实验按训练误差选检查点。GroupNorm、温度退火和固定 BN 统计只保留为可选实验设置，不改变核心网络默认结构。已撤回 skip connection 和 decoder 替换。
+本轮推荐权重为 `checkpoints/corner_predictor_fixed.pt`，`corner_predictor_paper.pt` 是相同内容的当前别名；对应元数据保存在同名 JSON。原 T=1 权重另存为 `corner_predictor_paper_T1.pt`，复查旧结果时指定 `--temperature 1`。当前结果导航位于本地 `results/decoder_fix_20261025/README.md`。
 
 ## 调参、预测与测试
 调参使用固定 16 张训练、4 张验证；基础 `train.py` 使用全部 20 张。新运行使用独立输出目录，视频帧仅用于测试：

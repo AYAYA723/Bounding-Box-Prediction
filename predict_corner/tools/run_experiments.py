@@ -25,6 +25,7 @@ def main():
                         default=root / "results" / datetime.now().strftime("paper_supervision_%Y%m%d_%H%M%S"))
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--temperature", type=float, default=0.25)
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -38,6 +39,7 @@ def main():
     report = {
         "started_at": datetime.now().astimezone().isoformat(), "status": "running",
         "loss": "coarse + 2*fine", "seed": 42, "batch_size": 2, "epochs": args.epochs,
+        "decoder_temperature": args.temperature,
         "resnet_learning_rates": [1e-4, 3e-4, 1e-3],
         "transformer_learning_rate": "selected ResNet learning rate",
         "split": "16 train / 4 validation; video frames are test only",
@@ -70,7 +72,8 @@ def main():
 
     run("unit_tests", "unittest", "discover", "-s", "predict_corner/tests", "-v")
     run("resnet_tuning", "predict_corner.tools.tune", "--architecture", "resnet",
-        "--epochs", args.epochs, "--device", args.device, "--output", output / "resnet")
+        "--epochs", args.epochs, "--device", args.device, "--temperature", args.temperature,
+        "--output", output / "resnet")
     run("resnet_curves", "predict_corner.tools.plot_tuning", "--runs", output / "resnet")
     candidates = json.loads((output / "resnet/comparison.json").read_text(encoding="utf-8"))
     best_resnet = min(candidates, key=lambda row: row["validation_error_px"])
@@ -82,22 +85,24 @@ def main():
     report["selected_resnet"] = best_resnet
     save_json(output / "pipeline.json", report)
     run("resnet_24_frame_crops", "predict_corner.tools.predict", "--device", args.device,
-        "--weights", resnet_weights, "--output", output / "resnet_video_test_24")
+        "--weights", resnet_weights, "--temperature", args.temperature, "--output", output / "resnet_video_test_24")
     run("resnet_full_video", "predict_corner.tools.test_video", "--device", args.device,
-        "--weights", resnet_weights, "--output", output / "resnet_full_video")
+        "--weights", resnet_weights, "--temperature", args.temperature, "--output", output / "resnet_full_video")
 
     # Complete the ResNet full-video test before training the Transformer.
     run("vit_training", "predict_corner.tools.tune", "--architecture", "vit",
         "--epochs", args.epochs, "--learning-rates", learning_rate,
-        "--device", args.device, "--output", output / "vit")
+        "--device", args.device, "--temperature", args.temperature, "--output", output / "vit")
     run("vit_curves", "predict_corner.tools.plot_tuning", "--runs", output / "vit")
     best_vit = json.loads((output / "vit/comparison.json").read_text(encoding="utf-8"))[0]
     vit_weights = checkpoints / "corner_predictor_transformer_paper.pt"
     shutil.copy2(root / best_vit["best_weights"], vit_weights)
     run("vit_24_frame_crops", "predict_corner.tools.predict", "--architecture", "vit",
-        "--device", args.device, "--weights", vit_weights, "--output", output / "vit_video_test_24")
+        "--device", args.device, "--weights", vit_weights, "--temperature", args.temperature,
+        "--output", output / "vit_video_test_24")
     run("vit_full_video", "predict_corner.tools.test_video", "--architecture", "vit",
-        "--device", args.device, "--weights", vit_weights, "--output", output / "vit_full_video")
+        "--device", args.device, "--weights", vit_weights, "--temperature", args.temperature,
+        "--output", output / "vit_full_video")
 
     summary = {"loss": report["loss"], "split": report["split"],
                "resnet18": best_resnet, "small_vit": best_vit,

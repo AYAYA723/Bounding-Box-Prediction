@@ -26,6 +26,7 @@ def main():
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--temperature", type=float, default=0.25)
     parser.add_argument("--output", type=Path, default=root / "results/paper_supervision_20261025")
     args = parser.parse_args()
     args.output = args.output.resolve()
@@ -45,7 +46,7 @@ def main():
         torch.manual_seed(args.seed)
         run_dir = args.output / f"lr_{learning_rate:.0e}"
         run_dir.mkdir(exist_ok=False)
-        model = model_classes[args.architecture]().to(device)
+        model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
         config = {"started_at": datetime.now(timezone(timedelta(hours=8))).isoformat(),
                   "learning_rate": learning_rate, "epochs": args.epochs,
                   "batch_size": args.batch_size, "seed": args.seed,
@@ -57,7 +58,8 @@ def main():
                                            "heads": 6, "mlp_dim": 1536, "dropout": 0.1}
                                           if args.architecture == "vit" else None,
                   "weight_decay": 0.01, "loss": "SmoothL1 coarse + 2 * normalized-coordinate SmoothL1 fine",
-                  "coordinate_decoder": "softmax over logits; pixel expectation; temperature=1",
+                  "coordinate_decoder": f"softmax over logits; pixel expectation; temperature={args.temperature:g}",
+                  "decoder_temperature": args.temperature,
                   "coordinate_normalization": "2 * xy / [W,H] - 1", "device": args.device,
                   "torch": torch.__version__, "torchvision": torchvision.__version__,
                   "checkpoint_selection": "lowest validation mean corner error, evaluated every 10 epochs"}
