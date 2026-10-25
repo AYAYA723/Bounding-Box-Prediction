@@ -1,4 +1,4 @@
-# Action 4 角点预测
+# Bounding-Box-Prediction-with-BoxDreamer
 单张 RGB 输入，预测物体三维包围盒的八个二维角点。当前使用冻结的 DINOv2 通用预训练 encoder 和自行训练的 Transformer decoder；保留 ResNet-18、小型 ViT 作为基线。未使用 BoxDreamer 的任务权重。
 
 核心代码、运行入口和数据约定见 [predict_corner/README.md](predict_corner/README.md)。所有命令在项目根目录执行。
