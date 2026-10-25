@@ -1,6 +1,8 @@
 from torch import nn
 from torchvision.models import resnet18
 
+from supervision import spatial_soft_argmax
+
 
 class CornerPredictor(nn.Module):
     def __init__(self, num_corners=8, weights=None):
@@ -45,5 +47,7 @@ class CornerPredictor(nn.Module):
     def forward(self, x):
         features = self.encoder(x)  # (N, 512, 15, 20)
         features = self.decoder(features)  # (N, 16, 480, 640)
-        heatmaps = self.heatmap_head(features)  # (N, 8, 480, 640)
-        return heatmaps
+        logits = self.heatmap_head[0](features)
+        heatmaps = self.heatmap_head[1](logits)  # (N, 8, 480, 640)
+        corners_xy = spatial_soft_argmax(logits)  # (N, 8, 2)
+        return heatmaps, corners_xy

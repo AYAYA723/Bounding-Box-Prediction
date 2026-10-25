@@ -1,11 +1,11 @@
 from pathlib import Path
 
 import torch
-from torch import nn
 from torch.utils.data import DataLoader
 
 from dataset import CornerDataset
 from model import CornerPredictor
+from supervision import BoxDreamerLoss
 
 
 def main():
@@ -15,16 +15,18 @@ def main():
 
     dataset = CornerDataset(project_dir / "datasets/action4/train_pbr/000000")
     data_loader = DataLoader(dataset, batch_size=2, shuffle=True, num_workers=0)
-    x, y = next(iter(data_loader))
+    x, y, target_corners = next(iter(data_loader))
     x = x.to(device)  # (N, 3, 480, 640)
     y = y.to(device)  # (N, 8, 480, 640)
+    target_corners = target_corners.to(device)
 
     model = CornerPredictor(num_corners=8, weights=None).to(device)
-    loss_fn = nn.SmoothL1Loss()
+    loss_fn = BoxDreamerLoss()
 
     model.train()
-    pred = model(x)
-    loss = loss_fn(pred, y)
+    pred, pred_corners = model(x)
+    loss, coarse, fine = loss_fn(pred, pred_corners, y, target_corners)
+    fine_gradient = torch.autograd.grad(fine, model.encoder[0].weight, retain_graph=True)[0]
     model.zero_grad()
     loss.backward()
 
@@ -33,15 +35,14 @@ def main():
     print("target:", y.shape)
     print("output:", pred.shape)
     print("loss:", loss.item())
+    print("coarse:", coarse.item(), "fine:", fine.item())
+    print("fine-only encoder gradient:", fine_gradient.norm().item())
     print("encoder gradient:", model.encoder[0].weight.grad.norm().item())
     print("head gradient:", model.heatmap_head[0].weight.grad.norm().item())
 
     model.eval()
     with torch.no_grad():
-        pred = model(x)
-        N, C, H, W = pred.shape
-        indices = pred.flatten(start_dim=2).argmax(dim=2)  # (N, 8)
-        corners_xy = torch.stack((indices % W, indices // W), dim=-1)  # (N, 8, 2)
+        pred, corners_xy = model(x)
     print("corners_xy:", corners_xy.shape)
 
 

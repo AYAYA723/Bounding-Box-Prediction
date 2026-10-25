@@ -7,13 +7,14 @@ from pathlib import Path
 
 import torch
 import torchvision
-from torch import nn, optim
+from torch import optim
 from torch.utils.data import DataLoader, Subset
 
 from dataset import CornerDataset
 from evaluate import evaluate, save_preview
 from model import CornerPredictor
 from transformer_model import TransformerCornerPredictor
+from supervision import BoxDreamerLoss
 
 
 def main():
@@ -25,7 +26,7 @@ def main():
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", default="cuda")
-    parser.add_argument("--output", type=Path, default=root / "results/tuning_20261025")
+    parser.add_argument("--output", type=Path, default=root / "results/paper_supervision_20261025")
     args = parser.parse_args()
     args.output = args.output.resolve()
     torch.set_num_threads(4)
@@ -55,42 +56,54 @@ def main():
                   "transformer_settings": {"patch_size": 32, "hidden_dim": 384, "layers": 6,
                                            "heads": 6, "mlp_dim": 1536, "dropout": 0.1}
                                           if args.architecture == "vit" else None,
-                  "weight_decay": 0.01, "loss": "SmoothL1 heatmap only", "device": args.device,
+                  "weight_decay": 0.01, "loss": "SmoothL1 coarse + 2 * normalized-coordinate SmoothL1 fine",
+                  "coordinate_decoder": "softmax over logits; pixel expectation; temperature=1",
+                  "coordinate_normalization": "2 * xy / [W,H] - 1", "device": args.device,
                   "torch": torch.__version__, "torchvision": torchvision.__version__,
                   "checkpoint_selection": "lowest validation mean corner error, evaluated every 10 epochs"}
         (run_dir / "config.json").write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
         loader = DataLoader(Subset(dataset, train_indices), batch_size=args.batch_size,
                             shuffle=True, num_workers=0,
                             generator=torch.Generator().manual_seed(args.seed + 1))
-        loss_fn = nn.SmoothL1Loss()
+        loss_fn = BoxDreamerLoss()
         optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
         best_error = float("inf")
         best_epoch = 0
         start = time.perf_counter()
         with (run_dir / "history.csv").open("w", newline="", encoding="utf-8") as stream:
             writer = csv.writer(stream)
-            writer.writerow(["epoch", "train_heatmap_loss", "validation_heatmap_loss", "validation_corner_error_px", "elapsed_seconds"])
+            writer.writerow(["epoch", "train_total_loss", "train_heatmap_loss", "train_fine_loss",
+                             "validation_total_loss", "validation_heatmap_loss", "validation_fine_loss",
+                             "validation_corner_error_px", "elapsed_seconds"])
             for epoch in range(1, args.epochs + 1):
                 model.train()
-                total = 0.0
-                for x, y in loader:
+                total, total_coarse, total_fine = 0.0, 0.0, 0.0
+                for x, y, target_corners in loader:
                     x, y = x.to(device), y.to(device)
-                    pred = model(x)
-                    loss = loss_fn(pred, y)
+                    target_corners = target_corners.to(device)
+                    pred, pred_corners = model(x)
+                    loss, coarse, fine = loss_fn(pred, pred_corners, y, target_corners)
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
                     total += loss.item() * x.shape[0]
+                    total_coarse += coarse.item() * x.shape[0]
+                    total_fine += fine.item() * x.shape[0]
                 train_loss = total / len(train_indices)
-                val_loss, val_error = "", ""
+                train_coarse = total_coarse / len(train_indices)
+                train_fine = total_fine / len(train_indices)
+                val_total, val_loss, val_fine, val_error = "", "", "", ""
                 if epoch % 10 == 0 or epoch == 1 or epoch == args.epochs:
                     metrics = evaluate(model, dataset, val_indices, device, args.batch_size)
                     val_loss, val_error = metrics["heatmap_loss"], metrics["mean_corner_error_px"]
+                    val_total, val_fine = metrics["total_loss"], metrics["fine_loss"]
                     if val_error < best_error:
                         best_error, best_epoch = val_error, epoch
                         torch.save(model.state_dict(), run_dir / "best.pt")
-                    print(f"lr={learning_rate:g} epoch={epoch}/{args.epochs} train={train_loss:.6f} val={val_loss:.6f} corner={val_error:.2f}px", flush=True)
-                writer.writerow([epoch, train_loss, val_loss, val_error, time.perf_counter() - start])
+                    print(f"lr={learning_rate:g} epoch={epoch}/{args.epochs} total={train_loss:.6f} "
+                          f"coarse={train_coarse:.6f} fine={train_fine:.6f} val={val_total:.6f} corner={val_error:.2f}px", flush=True)
+                writer.writerow([epoch, train_loss, train_coarse, train_fine, val_total, val_loss,
+                                 val_fine, val_error, time.perf_counter() - start])
                 stream.flush()
         torch.save(model.state_dict(), run_dir / "last.pt")
         model.load_state_dict(torch.load(run_dir / "best.pt", map_location=device, weights_only=True))

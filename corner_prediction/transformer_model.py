@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 
+from supervision import spatial_soft_argmax
+
 
 class TransformerCornerPredictor(nn.Module):
     def __init__(self, num_corners=8, hidden_dim=384, num_layers=6, num_heads=6):
@@ -55,5 +57,7 @@ class TransformerCornerPredictor(nn.Module):
         features = tokens.transpose(1, 2).reshape(N, C, H, W)
         features = self.projection(features)  # (N, 512, 15, 20)
         features = self.decoder(features)
-        heatmaps = self.heatmap_head(features)  # (N, 8, 480, 640)
-        return heatmaps
+        logits = self.heatmap_head[0](features)
+        heatmaps = self.heatmap_head[1](logits)  # (N, 8, 480, 640)
+        corners_xy = spatial_soft_argmax(logits)  # (N, 8, 2)
+        return heatmaps, corners_xy

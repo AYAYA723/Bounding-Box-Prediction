@@ -1,5 +1,6 @@
 # Action 4 角点预测
 单张 RGB 图片输入 ResNet-18 或小型 ViT，输出八通道包围盒角点热图。已完成小样本学习率对照、架构对照和视频流程测试；当前角点定位仍不准确，具体记录见 [EXPERIMENTS.md](corner_prediction/EXPERIMENTS.md)。
+当前源代码已更新为论文的完整监督：`coarse + 2*fine`，通过可微 soft-argmax 返回八个二维坐标。此前的权重、视频及便携包对应旧 coarse-only 版本。新实现说明见 [BOXDREAMER_ALIGNMENT.md](corner_prediction/BOXDREAMER_ALIGNMENT.md)。
 
 ## 文件
 - [corner_prediction/check_model.py](corner_prediction/check_model.py)：读取真实数据，检查前向、反向和角点输出格式。

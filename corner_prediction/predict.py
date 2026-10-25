@@ -17,9 +17,9 @@ def main():
     parser.add_argument("--input", type=Path,
                         default=project_dir / "datasets/action4/video_test_24/crops")
     parser.add_argument("--output", type=Path,
-                        default=project_dir / "results/video_test_24")
+                        default=project_dir / "results/paper_video_test_24")
     parser.add_argument("--weights", type=Path,
-                        default=project_dir / "corner_prediction/corner_predictor.pt")
+                        default=project_dir / "corner_prediction/corner_predictor_paper.pt")
     parser.add_argument("--device", default="cpu")
     args = parser.parse_args()
 
@@ -43,11 +43,11 @@ def main():
         for path in images:
             with Image.open(path) as image:
                 rgb = image.convert("RGB")
-            pred = model(transform(rgb).unsqueeze(0).to(device))[0]
-            indices = pred.flatten(start_dim=1).argmax(dim=1)
+            heatmaps, points = model(transform(rgb).unsqueeze(0).to(device))
+            pred, points = heatmaps[0], points[0]
             # Map resized pixel centers back to the original image coordinates.
-            x = ((indices % 640).float() + 0.5) * rgb.width / 640 - 0.5
-            y = ((indices // 640).float() + 0.5) * rgb.height / 480 - 0.5
+            x = (points[:, 0] + 0.5) * rgb.width / 640 - 0.5
+            y = (points[:, 1] + 0.5) * rgb.height / 480 - 0.5
             corners = torch.stack((x, y), dim=-1).cpu().tolist()
             preview = rgb.copy()
             draw = ImageDraw.Draw(preview)
@@ -70,6 +70,7 @@ def main():
     sheet.save(args.output / "predictions_contact_sheet.jpg", quality=94)
     (args.output / "predictions.json").write_text(json.dumps({
         "weights": str(args.weights), "device": args.device,
+        "coordinate_decoder": "spatial soft-argmax over logits, temperature=1",
         "note": "Qualitative predictions; heatmap peaks are responses, not calibrated confidence. Manual video crops are not corner ground truth.",
         "predictions": results}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Predicted {len(results)} images. Results: {args.output}")

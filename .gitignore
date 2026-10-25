@@ -17,6 +17,7 @@
 !/corner_prediction/*.py
 !/corner_prediction/README.md
 !/corner_prediction/EXPERIMENTS.md
+!/corner_prediction/BOXDREAMER_ALIGNMENT.md
 
 /data_prep/*
 !/data_prep/*.py

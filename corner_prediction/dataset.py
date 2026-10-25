@@ -29,4 +29,5 @@ class CornerDataset(Dataset):
             x = self.transform(image.convert("RGB"))  # (3, 480, 640)
         with np.load(label_path, allow_pickle=False) as label:
             y = torch.from_numpy(label["heatmaps"])  # (8, 480, 640)
-        return x, y
+            corners_xy = torch.from_numpy(label["corners_xy"]).float()  # (8, 2)
+        return x, y, corners_xy

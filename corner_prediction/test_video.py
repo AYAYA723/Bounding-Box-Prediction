@@ -17,8 +17,8 @@ def main():
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser()
     parser.add_argument("--architecture", choices=["resnet", "vit"], default="resnet")
-    parser.add_argument("--weights", type=Path, default=root / "corner_prediction/corner_predictor_tuned.pt")
-    parser.add_argument("--output", type=Path, default=root / "results/resnet_full_video")
+    parser.add_argument("--weights", type=Path, default=root / "corner_prediction/corner_predictor_paper.pt")
+    parser.add_argument("--output", type=Path, default=root / "results/paper_full_video")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
     torch.set_num_threads(4)
@@ -61,10 +61,8 @@ def main():
             crops = [np.asarray(rgb.crop(tuple(box)).resize((640, 480), Image.Resampling.LANCZOS))
                      for box in current_boxes]
             x = torch.from_numpy(np.stack(crops)).permute(0, 3, 1, 2).to(device).float() / 255
-            pred = model((x - mean) / std)
-            flat = pred.flatten(start_dim=2)
-            peaks = flat.argmax(dim=2)
-            points = torch.stack((peaks % 640, peaks // 640), dim=-1).cpu().numpy()
+            pred, corners_xy = model((x - mean) / std)
+            points = corners_xy.cpu().numpy()
             display = cv2.resize(frame, (out_w, out_h))
             crop_displays = [cv2.cvtColor(crop, cv2.COLOR_RGB2BGR) for crop in crops]
             record = {"frame_id": frame_id, "time_seconds": frame_id / fps, "targets": []}
@@ -74,7 +72,7 @@ def main():
                 full_points = np.rint(source_points * np.array([out_w / width, out_h / height])).astype(int)
                 display_box = np.rint(box * np.array([out_w / width, out_h / height] * 2)).astype(int)
                 cv2.rectangle(display, tuple(display_box[:2]), tuple(display_box[2:]), (255, 180, 30), 1)
-                for image, corners in ((display, full_points), (crop_displays[side_index], crop_points)):
+                for image, corners in ((display, full_points), (crop_displays[side_index], np.rint(crop_points).astype(int))):
                     for a, b in edges:
                         cv2.line(image, tuple(corners[a]), tuple(corners[b]), (60, 60, 255), 2)
                     for point in corners:
@@ -115,6 +113,7 @@ def main():
               "fps": fps, "duration_seconds": count / fps, "target_inferences": count * 2,
               "output_video_frame_counts": encoded_counts, "elapsed_seconds": time.perf_counter() - start,
               "roi_method": "linear interpolation of 24 manually selected left/right crop rectangles; no automatic detector",
+              "coordinate_decoder": "spatial soft-argmax over logits, temperature=1",
               "video_ground_truth_available": False}
     (output / "run.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2), flush=True)

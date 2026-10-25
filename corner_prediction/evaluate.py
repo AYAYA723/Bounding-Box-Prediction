@@ -4,33 +4,36 @@ from pathlib import Path
 
 import torch
 from PIL import Image, ImageDraw
-from torch import nn
 from torch.utils.data import DataLoader, Subset
 
 from dataset import CornerDataset
 from model import CornerPredictor
 from transformer_model import TransformerCornerPredictor
+from supervision import BoxDreamerLoss
 
 
 def evaluate(model, dataset, indices, device, batch_size=2):
-    annotations = json.loads((dataset.scene_dir / "keypoints_2d.json").read_text())["images"]
     loader = DataLoader(Subset(dataset, indices), batch_size=batch_size, shuffle=False)
     model.eval()
     total_loss = 0.0
+    total_coarse, total_fine = 0.0, 0.0
+    loss_fn = BoxDreamerLoss()
     records = []
     errors = []
     offset = 0
     with torch.no_grad():
-        for x, y in loader:
-            pred = model(x.to(device))
-            total_loss += nn.functional.smooth_l1_loss(pred, y.to(device)).item() * x.shape[0]
-            N, C, H, W = pred.shape
-            peaks = pred.flatten(start_dim=2).argmax(dim=2)
-            corners_xy = torch.stack((peaks % W, peaks // W), dim=-1).cpu().float()
+        for x, y, target_corners in loader:
+            pred, corners_xy = model(x.to(device))
+            loss, coarse, fine = loss_fn(pred, corners_xy, y.to(device), target_corners.to(device))
+            N = x.shape[0]
+            total_loss += loss.item() * N
+            total_coarse += coarse.item() * N
+            total_fine += fine.item() * N
+            corners_xy = corners_xy.cpu()
             for item in range(N):
                 index = indices[offset + item]
                 name = dataset.label_paths[index].stem
-                truth = torch.tensor(annotations[str(int(name))]["corners_2d"])
+                truth = target_corners[item]
                 distance = (corners_xy[item] - truth).norm(dim=1)
                 errors.extend(distance.tolist())
                 records.append({"image": name + ".png", "gt_xy": truth.tolist(),
@@ -39,7 +42,10 @@ def evaluate(model, dataset, indices, device, batch_size=2):
     values = torch.tensor(errors)
     return {
         "image_count": len(indices), "corner_count": len(errors),
-        "heatmap_loss": total_loss / len(indices),
+        "total_loss": total_loss / len(indices),
+        "heatmap_loss": total_coarse / len(indices),
+        "fine_loss": total_fine / len(indices),
+        "coordinate_decoder": "spatial soft-argmax over pre-Sigmoid logits, temperature=1",
         "mean_corner_error_px": values.mean().item(),
         "median_corner_error_px": values.median().item(),
         "within_5px_percent": (values <= 5).float().mean().item() * 100,
@@ -75,8 +81,8 @@ def main():
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser()
     parser.add_argument("--architecture", choices=["resnet", "vit"], default="resnet")
-    parser.add_argument("--weights", type=Path, default=root / "corner_prediction/corner_predictor.pt")
-    parser.add_argument("--output", type=Path, default=root / "results/baseline_evaluation")
+    parser.add_argument("--weights", type=Path, default=root / "corner_prediction/corner_predictor_paper.pt")
+    parser.add_argument("--output", type=Path, default=root / "results/paper_evaluation")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
     torch.set_num_threads(4)
