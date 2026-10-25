@@ -3,3 +3,5 @@ torch==2.13.0+cu130
 torchvision==0.28.0+cu130
 numpy==2.5.2
 Pillow==12.3.0
+opencv-python==5.0.0.93
+matplotlib==3.11.1

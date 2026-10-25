@@ -1,10 +1,13 @@
 # Action 4 角点预测
-单张 RGB 图片输入 ResNet-18，输出八通道包围盒角点热图。网络和数据接口已搭建，下一步是小样本过拟合实验。
+单张 RGB 图片输入 ResNet-18 或小型 ViT，输出八通道包围盒角点热图。已完成小样本学习率对照、架构对照和视频流程测试；当前角点定位仍不准确，具体记录见 [EXPERIMENTS.md](corner_prediction/EXPERIMENTS.md)。
 
 ## 文件
 - [corner_prediction/check_model.py](corner_prediction/check_model.py)：读取真实数据，检查前向、反向和角点输出格式。
 - [corner_prediction/train.py](corner_prediction/train.py)：按 PyTorch 基础笔记组织的训练循环和权重保存。
 - [corner_prediction/model.py](corner_prediction/model.py)：ResNet-18 encoder、上采样 decoder 和热图输出层。
+- [corner_prediction/transformer_model.py](corner_prediction/transformer_model.py)：小型 ViT encoder，同尺寸的 decoder 和热图输出层。
+- [corner_prediction/tune.py](corner_prediction/tune.py)：固定划分的调参实验及每轮 CSV。
+- [corner_prediction/test_video.py](corner_prediction/test_video.py)：完整视频逐帧测试。
 - [corner_prediction/dataset.py](corner_prediction/dataset.py)：RGB 与热图标签配对。
 - [data_prep/](data_prep/)：模型准备、渲染适配、角点投影和热图生成脚本。
 - [datasets/action4/](datasets/action4/)：少量相机参数、三维角点及 20 张图片的位姿、二维角点标注。
