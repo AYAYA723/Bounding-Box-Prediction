@@ -5,15 +5,15 @@ from pathlib import Path
 import torch
 from torch import optim
 
-from dataset import CornerDataset
-from model import CornerPredictor
-from supervision import BoxDreamerLoss
-from transformer_model import TransformerCornerPredictor
+from predict_corner.dataset import CornerDataset
+from predict_corner.model import CornerPredictor
+from predict_corner.supervision import BoxDreamerLoss
+from predict_corner.transformer_model import TransformerCornerPredictor
 
 
 def main():
     torch.set_num_threads(4)
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     output = root / "results/paper_supervision_implementation"
     output.mkdir(parents=True, exist_ok=True)
     device = torch.device("cuda")

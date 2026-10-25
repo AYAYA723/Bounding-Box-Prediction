@@ -15,7 +15,7 @@
 Blender 命令应加 `--python-exit-code 1`，避免 Python 脚本报错时 Blender 仍返回退出码 0。首次准备命令示例（PowerShell）：
 ```powershell
 & 'S:\Blender\blender.exe' --background --factory-startup --python-exit-code 1 --threads 4 `
-  --python 'S:\Deep Learning\coding_test_for_research\data_prep\prepare_action4.py' -- `
+  --python 'S:\Deep Learning\coding_test_for_research\predict_corner\data_prep\prepare_action4.py' -- `
   --source 'S:\Deep Learning\coding_test_for_research\相机资产\0468e0a404ddc50b1663be3cac636dd8.glb' `
   --output 'S:\Deep Learning\coding_test_for_research\datasets\action4' `
   --repo 'S:\Deep Learning\coding_test_for_research\HCCEPose'
@@ -28,13 +28,13 @@ Blender 命令应加 `--python-exit-code 1`，避免 Python 脚本报错时 Blen
 已完成的场景为 `datasets/action4/train_pbr/000000`。渲染命令结构（PowerShell）如下；该场景已存在，脚本会拒绝覆盖：
 ```powershell
 & 'S:\Blender\blender.exe' --background --factory-startup --python-exit-code 1 --threads 4 `
-  --python 'S:\Deep Learning\coding_test_for_research\data_prep\render_action4_smoke.py' -- `
+  --python 'S:\Deep Learning\coding_test_for_research\predict_corner\data_prep\render_action4_smoke.py' -- `
   --dataset 'S:\Deep Learning\coding_test_for_research\datasets\action4' --scene-id 000000 --count 20 --seed 42
 ```
 后处理和验证（WSL Bash，使用已有 S 盘环境）：
 ```bash
 source '/mnt/s/Deep Learning/coding_test_for_research/pixal3d_local/env.sh'
-OPENBLAS_NUM_THREADS=2 python '/mnt/s/Deep Learning/coding_test_for_research/data_prep/validate_smoke20.py' \
+OPENBLAS_NUM_THREADS=2 python '/mnt/s/Deep Learning/coding_test_for_research/predict_corner/data_prep/validate_smoke20.py' \
   --scene '/mnt/s/Deep Learning/coding_test_for_research/datasets/action4/train_pbr/000000'
 ```
 脚本先验证 prepared 模型的输入 SHA256，再生成新场景；不会覆盖模型或已有场景。为了先验证标签，渲染使用 4 个 CPU 线程，未占用 CUDA 推理显存。脚本本轮运行时将 Blender 临时目录和用户资源目录指定在 `.cache/asset-prep/`，均位于 S 盘。

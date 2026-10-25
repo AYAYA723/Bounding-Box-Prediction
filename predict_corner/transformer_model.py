@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from supervision import spatial_soft_argmax
+from predict_corner.supervision import spatial_soft_argmax
 
 
 class TransformerCornerPredictor(nn.Module):

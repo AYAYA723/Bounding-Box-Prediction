@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from generate_corner_heatmaps import make_corner_heatmaps
+from predict_corner.data_prep.generate_corner_heatmaps import make_corner_heatmaps
 
 
 class CornerHeatmapTests(unittest.TestCase):

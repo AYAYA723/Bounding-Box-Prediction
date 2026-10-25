@@ -7,9 +7,9 @@ import torch
 from torch import optim
 from torch.utils.data import DataLoader
 
-from dataset import CornerDataset
-from model import CornerPredictor
-from supervision import BoxDreamerLoss
+from predict_corner.dataset import CornerDataset
+from predict_corner.model import CornerPredictor
+from predict_corner.supervision import BoxDreamerLoss
 
 
 def main():
@@ -64,7 +64,9 @@ def main():
 
     log.close()
     torch.save(model.state_dict(), run_dir / "last.pt")
-    torch.save(model.state_dict(), project_dir / "corner_prediction/corner_predictor_paper.pt")
+    checkpoint_dir = project_dir / "predict_corner/checkpoints"
+    checkpoint_dir.mkdir(exist_ok=True)
+    torch.save(model.state_dict(), checkpoint_dir / "corner_predictor_paper.pt")
 
 
 if __name__ == "__main__":

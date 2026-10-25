@@ -8,7 +8,7 @@ import torch
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     source = root / ".cache/boxdreamer-source"
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source).decode().strip()
     relative = "src/models/utils/box_utils.py"

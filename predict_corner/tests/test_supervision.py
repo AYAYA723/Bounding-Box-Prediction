@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from supervision import BoxDreamerLoss, normalize_coordinates, spatial_soft_argmax
+from predict_corner.supervision import BoxDreamerLoss, normalize_coordinates, spatial_soft_argmax
 
 
 class SupervisionTests(unittest.TestCase):

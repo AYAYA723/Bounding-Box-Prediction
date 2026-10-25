@@ -10,15 +10,15 @@ import torchvision
 from torch import optim
 from torch.utils.data import DataLoader, Subset
 
-from dataset import CornerDataset
-from evaluate import evaluate, save_preview
-from model import CornerPredictor
-from transformer_model import TransformerCornerPredictor
-from supervision import BoxDreamerLoss
+from predict_corner.dataset import CornerDataset
+from predict_corner.tools.evaluate import evaluate, save_preview
+from predict_corner.model import CornerPredictor
+from predict_corner.transformer_model import TransformerCornerPredictor
+from predict_corner.supervision import BoxDreamerLoss
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument("--architecture", choices=["resnet", "vit"], default="resnet")
     parser.add_argument("--learning-rates", type=float, nargs="+", default=[1e-4, 3e-4, 1e-3])

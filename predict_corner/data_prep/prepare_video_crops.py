@@ -22,7 +22,7 @@ CENTERS = [
 
 
 def main():
-    root = Path(__file__).resolve().parents[1] / "datasets/action4/video_test_24"
+    root = Path(__file__).resolve().parents[2] / "datasets/action4/video_test_24"
     frames = json.loads((root / "frames.json").read_text())["frames"]
     (root / "crops").mkdir(exist_ok=True)
     records = []

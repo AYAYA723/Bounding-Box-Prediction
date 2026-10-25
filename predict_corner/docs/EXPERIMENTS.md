@@ -4,7 +4,7 @@
 先确认模型能否学到包围盒角点，再看真实视频上的表现。合成数据使用二维角点的平均欧氏像素误差，以及误差不超过 5/10 px 的角点比例；热图 loss 单独记录。视频没有角点 GT，只保存可视化，不报告定量精度。
 
 ## 历史基线：20 张合成图
-2026-10-24：随机初始化 ResNet-18，20 张图片全部用于训练，batch size=2，AdamW，learning rate=`1e-4`，100 epochs，只有 SmoothL1 热图损失。训练 loss 从 `0.054572` 降至 `0.017428`。原始权重为 `corner_predictor.pt`，每轮记录为本地 `training_history.json`。该实验没有验证集，不能把训练 loss 当成泛化结果。
+2026-10-24：随机初始化 ResNet-18，20 张图片全部用于训练，batch size=2，AdamW，learning rate=`1e-4`，100 epochs，只有 SmoothL1 热图损失。训练 loss 从 `0.054572` 降至 `0.017428`。原始权重为 `corner_predictor.pt`，每轮记录为本地 `results/baseline_training/training_history.json`。该实验没有验证集，不能把训练 loss 当成泛化结果。
 
 ## 2026-10-25：学习率对照
 固定随机种子 42，将 20 张合成图划分为 16 张训练、4 张验证；所有学习率使用相同划分、初始化种子和采样顺序。batch size=2、100 epochs、AdamW、weight decay=0.01、SmoothL1 热图损失保持一致，仅对照 `1e-4`、`3e-4`、`1e-3` 三组学习率。历史 20 张基线与此处划分不同，分开报告。

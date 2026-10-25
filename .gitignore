@@ -5,23 +5,29 @@
 !/README.md
 !/requirements.txt
 !/.vscode/
-!/corner_prediction/
-!/data_prep/
+!/predict_corner/
 !/datasets/
 
 # Interpreter selection belongs to this machine.
 /.vscode/*
 !/.vscode/extensions.json
 
-/corner_prediction/*
-!/corner_prediction/*.py
-!/corner_prediction/README.md
-!/corner_prediction/EXPERIMENTS.md
-!/corner_prediction/BOXDREAMER_ALIGNMENT.md
-
-/data_prep/*
-!/data_prep/*.py
-!/data_prep/*.md
+/predict_corner/*
+!/predict_corner/*.py
+!/predict_corner/README.md
+!/predict_corner/tools/
+!/predict_corner/tests/
+!/predict_corner/docs/
+!/predict_corner/data_prep/
+/predict_corner/tools/*
+!/predict_corner/tools/*.py
+/predict_corner/tests/*
+!/predict_corner/tests/*.py
+/predict_corner/docs/*
+!/predict_corner/docs/*.md
+/predict_corner/data_prep/*
+!/predict_corner/data_prep/*.py
+!/predict_corner/data_prep/*.md
 
 /datasets/*
 !/datasets/action4/

@@ -33,10 +33,10 @@ total = coarse + 2.0 * fine
 
 ## 运行与旧结果
 ```powershell
-python corner_prediction/test_supervision.py -v
-python corner_prediction/check_model.py
-python corner_prediction/verify_paper_implementation.py
-python corner_prediction/train.py
+python -m unittest predict_corner.tests.test_supervision -v
+python -m predict_corner.tools.check_model
+python -m predict_corner.tools.verify_paper_implementation
+python -m predict_corner.train
 ```
 `train.py` 每次建立新的带时间目录，保存配置和每轮三项 loss；最终权重为 `corner_predictor_paper.pt`。调参入口 `tune.py` 同样计算完整监督并记录三项 train/validation loss，默认结果目录为 `results/paper_supervision_20261025`。
 原来 coarse-only 的权重、日志、视频和便携包保留；旧视频与旧误差值没有被改写，不代表本版完整监督。新的训练与解码策略必须重新计算指标；不要把旧 argmax 报告直接与新的 soft-argmax 报告作 fine-loss 消融结论。

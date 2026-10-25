@@ -3,14 +3,14 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from dataset import CornerDataset
-from model import CornerPredictor
-from supervision import BoxDreamerLoss
+from predict_corner.dataset import CornerDataset
+from predict_corner.model import CornerPredictor
+from predict_corner.supervision import BoxDreamerLoss
 
 
 def main():
     torch.manual_seed(42)
-    project_dir = Path(__file__).resolve().parents[1]
+    project_dir = Path(__file__).resolve().parents[2]
     device = torch.device("cuda")
 
     dataset = CornerDataset(project_dir / "datasets/action4/train_pbr/000000")

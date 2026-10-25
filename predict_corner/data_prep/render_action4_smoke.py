@@ -31,7 +31,7 @@ def main():
     parser.add_argument("--count", type=int, default=20)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
-    root = Path(__file__).resolve().parent.parent
+    root = Path(__file__).resolve().parents[2]
     dataset = args.dataset.resolve()
     if not dataset.is_relative_to(root / "datasets") or not (len(args.scene_id) == 6 and args.scene_id.isdigit()):
         raise RuntimeError("Unexpected dataset or scene ID")

@@ -1,7 +1,7 @@
 from torch import nn
 from torchvision.models import resnet18
 
-from supervision import spatial_soft_argmax
+from predict_corner.supervision import spatial_soft_argmax
 
 
 class CornerPredictor(nn.Module):

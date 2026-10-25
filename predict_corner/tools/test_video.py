@@ -9,15 +9,15 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw
 
-from model import CornerPredictor
-from transformer_model import TransformerCornerPredictor
+from predict_corner.model import CornerPredictor
+from predict_corner.transformer_model import TransformerCornerPredictor
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument("--architecture", choices=["resnet", "vit"], default="resnet")
-    parser.add_argument("--weights", type=Path, default=root / "corner_prediction/corner_predictor_paper.pt")
+    parser.add_argument("--weights", type=Path, default=root / "predict_corner/checkpoints/corner_predictor_paper.pt")
     parser.add_argument("--output", type=Path, default=root / "results/paper_full_video")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()

@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 def main():
-    project_dir = Path(__file__).resolve().parents[1]
+    project_dir = Path(__file__).resolve().parents[2]
     video_path = project_dir / "head_left_rgb_raw.mp4"
     output_dir = project_dir / "datasets/action4/video_test_24"
     frames_dir = output_dir / "frames"

@@ -1,38 +1,28 @@
 # Action 4 角点预测
-单张 RGB 图片输入 ResNet-18 或小型 ViT，输出八通道包围盒角点热图。已完成小样本学习率对照、架构对照和视频流程测试；当前角点定位仍不准确，具体记录见 [EXPERIMENTS.md](corner_prediction/EXPERIMENTS.md)。
-当前源代码已更新为论文的完整监督：`coarse + 2*fine`，通过可微 soft-argmax 返回八个二维坐标。此前的权重、视频及便携包对应旧 coarse-only 版本。新实现说明见 [BOXDREAMER_ALIGNMENT.md](corner_prediction/BOXDREAMER_ALIGNMENT.md)。
+单张 RGB 图片输入 ResNet-18 或小型 ViT，输出八通道包围盒角点热图与八个二维坐标。当前采用论文的 `coarse + 2*fine` 监督，坐标通过可微 soft-argmax 提取。历史学习率对照、架构对照和视频测试仍保留，角点定位尚不准确。
 
-## 文件
-- [corner_prediction/check_model.py](corner_prediction/check_model.py)：读取真实数据，检查前向、反向和角点输出格式。
-- [corner_prediction/train.py](corner_prediction/train.py)：按 PyTorch 基础笔记组织的训练循环和权重保存。
-- [corner_prediction/model.py](corner_prediction/model.py)：ResNet-18 encoder、上采样 decoder 和热图输出层。
-- [corner_prediction/transformer_model.py](corner_prediction/transformer_model.py)：小型 ViT encoder，同尺寸的 decoder 和热图输出层。
-- [corner_prediction/tune.py](corner_prediction/tune.py)：固定划分的调参实验及每轮 CSV。
-- [corner_prediction/test_video.py](corner_prediction/test_video.py)：完整视频逐帧测试。
-- [corner_prediction/dataset.py](corner_prediction/dataset.py)：RGB 与热图标签配对。
-- [data_prep/](data_prep/)：模型准备、渲染适配、角点投影和热图生成脚本。
-- [datasets/action4/](datasets/action4/)：少量相机参数、三维角点及 20 张图片的位姿、二维角点标注。
+所有代码统一放在 [predict_corner/](predict_corner/README.md)。数据集放在 `datasets/`，实验记录与输出放在 `results/`，原始视频和 GLB 资产保留在原位置。
 
-## 本机运行
-在 VS Code 中打开本目录，Python 解释器使用：
-```text
-S:\Deep Learning\eecs498\.venv\Scripts\python.exe
-```
-该环境已有 NumPy、PyTorch、torchvision、Pillow 和 CUDA 支持。项目的本机解释器路径配置在 `.vscode/settings.json`，不纳入 Git。已有工作区若缓存了其他解释器，通过 `Python: Select Interpreter` 选择上述路径。
-在项目根目录运行：
+## 运行
+在本项目根目录打开终端，本机使用已有环境：
 ```powershell
-& 'S:\Deep Learning\eecs498\.venv\Scripts\python.exe' corner_prediction/check_model.py
+& 'S:\Deep Learning\eecs498\.venv\Scripts\python.exe' -m predict_corner.tools.check_model
+& 'S:\Deep Learning\eecs498\.venv\Scripts\python.exe' -m predict_corner.train
 ```
-训练入口和参数见 [corner_prediction/README.md](corner_prediction/README.md)。
+在 VS Code 中选择上述 Python 解释器；`.vscode/settings.json` 是本机配置，不纳入 Git。训练、预测和调参命令见 [predict_corner/README.md](predict_corner/README.md)。
 
 ## 新环境
-使用 Python 3.14 创建环境，安装与本机核对一致的网络运行依赖：
+使用 Python 3.14 创建环境并安装当前 NVIDIA CUDA 13.0 版本的依赖：
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
-选择 `.venv/Scripts/python.exe` 作为解释器。`requirements.txt` 对应当前 NVIDIA CUDA 13.0 版本；数据准备脚本的 Blender、SciPy、OpenCV 等环境见 [data_prep/README.md](data_prep/README.md)。脚本根据自身位置定位项目目录。
+选择 `.venv/Scripts/python.exe` 作为解释器。数据准备所需的 Blender、SciPy 等环境和运行命令见 [data_prep/README.md](predict_corner/data_prep/README.md)。
 
-## 数据与版本管理
-Git 采用白名单，仅管理代码、说明、依赖清单和少量标注 JSON。渲染 RGB、深度图、掩膜、热图、三维模型、贴图、权重、环境、缓存和检查图保留在本地，通过脚本生成或另行准备。运行前需要本地已有 `datasets/action4/train_pbr/000000/rgb/` 与 `heatmaps_boxdreamer/`。
-题目、任务与问题记录、论文及译稿、汇报、视频、参考素材、Pixal3D 及其部署文件、HCCEPose 上游仓库均不纳入 Git。本地文件不会因忽略规则被删除。新增顶层目录需要在 `.gitignore` 中明确允许后才会被跟踪。
+## 数据与记录
+- [datasets/action4/](datasets/action4/README.md)：相机参数、三维角点、20 张合成图的位姿与二维角点标注。本地训练还需要 `rgb/` 和 `heatmaps_boxdreamer/`。
+- [EXPERIMENTS.md](predict_corner/docs/EXPERIMENTS.md)：训练条件、调优结果和后续实验。
+- [BOXDREAMER_ALIGNMENT.md](predict_corner/docs/BOXDREAMER_ALIGNMENT.md)：论文、官方代码与本版实现的差异。
+当前三个历史权重和已有视频、便携包对应旧 coarse-only 版本；完整监督版本目前只做过实现和短训练检查。
+
+Git 仅管理代码、说明、依赖和少量标注 JSON。RGB、热图、权重、三维资产、视频、环境、缓存、题目、问题、汇报、Pixal3D 和 HCCEPose 上游仓库均留在本地，不纳入 Git。

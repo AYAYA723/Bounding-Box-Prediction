@@ -2,20 +2,22 @@ import hashlib
 import json
 import subprocess
 import zipfile
+from datetime import datetime
 from pathlib import Path
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
-    output = root / "transfer/Action4_transfer_20261025.zip"
+    root = Path(__file__).resolve().parents[2]
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output = root / "transfer" / f"Action4_transfer_{stamp}.zip"
     output.parent.mkdir(exist_ok=True)
     tracked = subprocess.check_output(
         ["git", "-c", "core.excludesFile=.git/info/exclude", "ls-files", "-z"], cwd=root,
     ).decode("utf-8").split("\0")
     files = {root / name for name in tracked if name and not name.endswith(".ipynb")}
-    files.update((root / "corner_prediction").glob("*.py"))
-    files.update((root / "data_prep").glob("*.py"))
-    files.update((root / "data_prep").glob("*.md"))
+    files.update((root / "predict_corner").rglob("*.py"))
+    files.update((root / "predict_corner").rglob("*.md"))
+    files.update((root / "predict_corner/checkpoints").glob("*.pt"))
     files.update((root / "datasets/action4/train_pbr/000000/rgb").glob("*.png"))
     files.update((root / "datasets/action4/video_test_24/frames").glob("*.jpg"))
     files.update((root / "datasets/action4/video_test_24/crops").glob("*.jpg"))
@@ -23,15 +25,12 @@ def main():
     files.update((root / "results/video_test_24").glob("*.json"))
     files.update((root / "results/synthetic_preview").glob("*.jpg"))
     files.update((root / "results/synthetic_preview").glob("*.json"))
-    for directory in ("baseline_evaluation", "tuning_20261025", "transformer_20261025", "architecture_comparison",
-                      "resnet_full_video", "transformer_full_video"):
+    for directory in ("baseline_training", "baseline_evaluation", "tuning_20261025", "transformer_20261025",
+                      "architecture_comparison", "resnet_full_video", "transformer_full_video",
+                      "paper_supervision_implementation", "paper_train", "paper_supervision_20261025"):
         files.update(path for path in (root / "results" / directory).rglob("*")
                      if path.is_file() and path.suffix in (".json", ".jsonl", ".csv", ".png", ".jpg", ".md"))
     files.update([
-        root / "corner_prediction/corner_predictor.pt",
-        root / "corner_prediction/training_history.json",
-        root / "corner_prediction/corner_predictor_tuned.pt",
-        root / "corner_prediction/corner_predictor_transformer.pt",
         root / "datasets/action4/video_test_24/frames.json",
         root / "datasets/action4/video_test_24/manual_rois.json",
         root / "datasets/action4/video_test_24/frames_contact_sheet.jpg",
@@ -51,7 +50,7 @@ def main():
             compression = zipfile.ZIP_DEFLATED if path.suffix in (".py", ".md", ".json", ".jsonl", ".csv", ".txt") else zipfile.ZIP_STORED
             archive.write(path, "action4_transfer/" + name, compress_type=compression, compresslevel=1)
         archive.writestr("action4_transfer/README_TRANSFER.md",
-                         (root / "data_prep/TRANSFER_README.md").read_bytes())
+                         (root / "predict_corner/data_prep/TRANSFER_README.md").read_bytes())
         archive.writestr("action4_transfer/SHA256SUMS.json",
                          json.dumps(hashes, ensure_ascii=False, indent=2).encode("utf-8"))
     with zipfile.ZipFile(output) as archive:
@@ -61,7 +60,7 @@ def main():
     print(json.dumps({"archive": str(output), "file_count": file_count,
                       "size_mib": round(output.stat().st_size / 1024**2, 2),
                       "zip_crc_check": "PASS"}, ensure_ascii=False, indent=2))
-    videos_output = output.with_name("Action4_full_video_results_20261025.zip")
+    videos_output = output.with_name(f"Action4_full_video_results_{stamp}.zip")
     with zipfile.ZipFile(videos_output, "w", compression=zipfile.ZIP_STORED) as archive:
         for directory in ("resnet_full_video", "transformer_full_video"):
             for path in sorted((root / "results" / directory).glob("*.mp4")):

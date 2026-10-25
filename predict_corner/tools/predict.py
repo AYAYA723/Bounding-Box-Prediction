@@ -6,12 +6,12 @@ import torch
 from PIL import Image, ImageDraw
 from torchvision import transforms
 
-from model import CornerPredictor
-from transformer_model import TransformerCornerPredictor
+from predict_corner.model import CornerPredictor
+from predict_corner.transformer_model import TransformerCornerPredictor
 
 
 def main():
-    project_dir = Path(__file__).resolve().parents[1]
+    project_dir = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument("--architecture", choices=["resnet", "vit"], default="resnet")
     parser.add_argument("--input", type=Path,
@@ -19,7 +19,7 @@ def main():
     parser.add_argument("--output", type=Path,
                         default=project_dir / "results/paper_video_test_24")
     parser.add_argument("--weights", type=Path,
-                        default=project_dir / "corner_prediction/corner_predictor_paper.pt")
+                        default=project_dir / "predict_corner/checkpoints/corner_predictor_paper.pt")
     parser.add_argument("--device", default="cpu")
     args = parser.parse_args()
 

@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     video_dir = root / "datasets/action4/video_test_24"
     results_dir = root / "results/paper_video_test_24"
     output = results_dir / "full_frames"

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=Path, default=root / "results/tuning_20261025")
     args = parser.parse_args()

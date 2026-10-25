@@ -18,7 +18,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-PROJECT = Path(__file__).resolve().parents[1]
+PROJECT = Path(__file__).resolve().parents[2]
 DEFAULT_SCENE = PROJECT / "datasets/action4/train_pbr/000000"
 PAPER_URL = "https://arxiv.org/html/2504.07955v2#S3.SS1"
 CODE_URL = (

@@ -28,7 +28,7 @@ def main():
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--resume-own-export", action="store_true")
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
-    project = Path(__file__).resolve().parent.parent
+    project = Path(__file__).resolve().parents[2]
     source, output = args.source.resolve(), args.output.resolve()
     if not source.is_relative_to(project) or not output.is_relative_to(project / "datasets"):
         raise RuntimeError("Inputs and outputs must stay inside this S-drive project")

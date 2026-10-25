@@ -22,11 +22,10 @@ H[i,y,x] = exp(-sqrt((x-x_i)^2 + (y-y_i)^2) / (d_i/10)^2)
 - 训练时若裁剪、缩放或翻转 RGB，要同步变换角点并重新生成热图。不要只变换图片，或把原分辨率的热图直接当作另一分辨率的监督。
 
 ## 运行
-使用现有 S 盘环境中的 NumPy 和 Pillow。PowerShell：
+在项目根目录运行，使用现有 S 盘环境中的 NumPy 和 Pillow。PowerShell：
 ```powershell
-$project = 'S:\Deep Learning\coding_test_for_research'
 & 'S:\Deep Learning\eecs498\.venv\Scripts\python.exe' -B `
-  "$project\data_prep\generate_corner_heatmaps.py"
+  -m predict_corner.data_prep.generate_corner_heatmaps
 ```
 默认输出 `datasets/action4/train_pbr/000000/heatmaps_boxdreamer/`。已存在时拒绝覆盖；如需生成另一版，使用 `--output '新的输出目录'`。其他场景用 `--scene '场景目录'`。
 ```text
@@ -57,6 +56,6 @@ with np.load("heatmaps_boxdreamer/000000.npz", allow_pickle=False) as label:
 生成程序检查所有 160 个通道的峰值、范围和公式采样值，并读回保存的文件检查数组一致性；输入 JSON 和 RGB 以 SHA256 核对未变。`test_corner_heatmaps.py` 另检查已知数值、非方形图像中的 x/y 顺序、亚像素位置、固定通道顺序、自适应尺度和出画角点。
 ```powershell
 & 'S:\Deep Learning\eecs498\.venv\Scripts\python.exe' -B `
-  "$project\data_prep\test_corner_heatmaps.py" -v
+  -m unittest predict_corner.tests.test_corner_heatmaps -v
 ```
 这些检查验证标签生成正确性，不代表网络已经训练或在真实视频上达到相同精度。

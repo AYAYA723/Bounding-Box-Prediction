@@ -28,7 +28,7 @@ PLY 保留 Base Color 贴图和几何顶点法线，不完整保存 GLB 的 norm
 ## 20 张带标签小样本（已完成）
 位置：`train_pbr/000000/`。640×480，Seed 42，覆盖正面、背面、侧面与不同俯仰角，并随机化滚转、距离、灯光和纯色背景。只渲染一个无外部遮挡的相机实例，没有使用目标视频帧。
 
-本批由 `data_prep/render_action4_smoke.py` 在已有 Blender 5.2 中生成，是兼容 BOP 的小样本适配，不是已跑通原版 HCCEPose BlenderProc 全环境。RGB 来自 Cycles，沿光轴的 Z 深度由同一网格的 BVH 在像素中心独立求交生成。深度保存为 16-bit PNG，乘以每帧 `depth_scale=0.1` 得到毫米；背景值为 0。
+本批由 `predict_corner/data_prep/render_action4_smoke.py` 在已有 Blender 5.2 中生成，是兼容 BOP 的小样本适配，不是已跑通原版 HCCEPose BlenderProc 全环境。RGB 来自 Cycles，沿光轴的 Z 深度由同一网格的 BVH 在像素中心独立求交生成。深度保存为 16-bit PNG，乘以每帧 `depth_scale=0.1` 得到毫米；背景值为 0。
 
 ```text
 train_pbr/000000/
@@ -52,4 +52,4 @@ train_pbr/000000/
 
 ## 八角点热图标签（已生成）
 `train_pbr/000000/heatmaps_boxdreamer/` 已有 20 份 `.npz`，每份包含 `float32 (8,480,640)` 的 `heatmaps` 及原始角点坐标。采用 BoxDreamer §3.1 的距离指数函数，中心取八个二维角点的均值，平滑分母为角点到中心距离的十分之一的平方。保留论文描述的 `[0,1]` 值域；官方代码额外的最大值归一化和 `[-1,1]` 变换未采用。
-全部 160 个通道的峰值均落在距对应角点最近的像素位置，最大采样距离为 `0.667803 px`；保存后数组读回检查通过，原始 RGB 与角点 JSON 未变。检查图和结果位于热图目录的 `checks/`，生成方式、读取示例和坐标约定见 [heatmaps_README.md](../../data_prep/heatmaps_README.md)。后续改变输入图像的裁剪或分辨率时，须同步变换角点并重新生成热图。
+全部 160 个通道的峰值均落在距对应角点最近的像素位置，最大采样距离为 `0.667803 px`；保存后数组读回检查通过，原始 RGB 与角点 JSON 未变。检查图和结果位于热图目录的 `checks/`，生成方式、读取示例和坐标约定见 [heatmaps_README.md](../../predict_corner/data_prep/heatmaps_README.md)。后续改变输入图像的裁剪或分辨率时，须同步变换角点并重新生成热图。
