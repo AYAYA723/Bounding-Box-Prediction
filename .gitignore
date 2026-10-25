@@ -12,6 +12,7 @@
 /.vscode/*
 !/.vscode/extensions.json
 
+# Core code and supporting scripts.
 /predict_corner/*
 !/predict_corner/*.py
 !/predict_corner/README.md
@@ -29,6 +30,7 @@
 !/predict_corner/data_prep/*.py
 !/predict_corner/data_prep/*.md
 
+# Keep only small dataset metadata and annotations.
 /datasets/*
 !/datasets/action4/
 /datasets/action4/*
@@ -47,7 +49,19 @@
 !/datasets/action4/train_pbr/000000/scene_gt_info.json
 !/datasets/action4/train_pbr/000000/keypoints_2d.json
 
+# Generated experiments, checkpoints, archives and local environments.
+/results/
+/predict_corner/checkpoints/
+/transfer/
+/.cache/
+/.runtimes/
+/.venv*/
+
+# Python caches and local settings.
 __pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.py[cod]
 .ipynb_checkpoints/
 *.ipynb
@@ -56,3 +70,4 @@ __pycache__/
 *.pt
 *.pth
 *.ckpt
+*.log

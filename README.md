@@ -23,6 +23,6 @@ python -m venv .venv
 - [datasets/action4/](datasets/action4/README.md)：相机参数、三维角点、20 张合成图的位姿与二维角点标注。本地训练还需要 `rgb/` 和 `heatmaps_boxdreamer/`。
 - [EXPERIMENTS.md](predict_corner/docs/EXPERIMENTS.md)：训练条件、调优结果和后续实验。
 - [BOXDREAMER_ALIGNMENT.md](predict_corner/docs/BOXDREAMER_ALIGNMENT.md)：论文、官方代码与本版实现的差异。
-当前三个历史权重和已有视频、便携包对应旧 coarse-only 版本；完整监督版本目前只做过实现和短训练检查。
+历史 coarse-only 结果目录已清理，数值摘要仍保留在实验记录中。旧权重和便携包对应旧 coarse-only 版本。完整监督的新一轮已完成：ResNet 验证角点平均误差 100.28 px，ViT 为 111.96 px，仍未准确定位。结果与视频导航位于本地 `results/paper_supervision_20261025/README.md`。
 
 Git 仅管理代码、说明、依赖和少量标注 JSON。RGB、热图、权重、三维资产、视频、环境、缓存、题目、问题、汇报、Pixal3D 和 HCCEPose 上游仓库均留在本地，不纳入 Git。

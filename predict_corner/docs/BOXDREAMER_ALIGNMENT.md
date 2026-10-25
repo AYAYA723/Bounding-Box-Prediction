@@ -39,4 +39,4 @@ python -m predict_corner.tools.verify_paper_implementation
 python -m predict_corner.train
 ```
 `train.py` 每次建立新的带时间目录，保存配置和每轮三项 loss；最终权重为 `corner_predictor_paper.pt`。调参入口 `tune.py` 同样计算完整监督并记录三项 train/validation loss，默认结果目录为 `results/paper_supervision_20261025`。
-原来 coarse-only 的权重、日志、视频和便携包保留；旧视频与旧误差值没有被改写，不代表本版完整监督。新的训练与解码策略必须重新计算指标；不要把旧 argmax 报告直接与新的 soft-argmax 报告作 fine-loss 消融结论。
+原来 coarse-only 的结果目录已按要求删除，历史权重、便携包及文档中的数值摘要保留。新一轮完整监督重新训练并计算指标；旧 argmax 报告与新的 soft-argmax 报告同时改变了解码方法，不作为只改变 fine loss 的消融实验。

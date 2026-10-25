@@ -3,7 +3,7 @@ from torch import nn
 
 
 def spatial_soft_argmax(logits):
-    """从未经过 Sigmoid 的 logits 提取可微分的 (x,y)，单位为像素。"""
+    """Extract differentiable (x, y) pixel coordinates from pre-Sigmoid logits."""
     N, C, H, W = logits.shape
     probabilities = logits.flatten(start_dim=2).softmax(dim=-1).reshape(N, C, H, W)
     xs = torch.arange(W, device=logits.device, dtype=logits.dtype)

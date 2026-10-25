@@ -21,15 +21,8 @@ def main():
     files.update((root / "datasets/action4/train_pbr/000000/rgb").glob("*.png"))
     files.update((root / "datasets/action4/video_test_24/frames").glob("*.jpg"))
     files.update((root / "datasets/action4/video_test_24/crops").glob("*.jpg"))
-    files.update((root / "results/video_test_24").glob("*.jpg"))
-    files.update((root / "results/video_test_24").glob("*.json"))
-    files.update((root / "results/synthetic_preview").glob("*.jpg"))
-    files.update((root / "results/synthetic_preview").glob("*.json"))
-    for directory in ("baseline_training", "baseline_evaluation", "tuning_20261025", "transformer_20261025",
-                      "architecture_comparison", "resnet_full_video", "transformer_full_video",
-                      "paper_supervision_implementation", "paper_train", "paper_supervision_20261025"):
-        files.update(path for path in (root / "results" / directory).rglob("*")
-                     if path.is_file() and path.suffix in (".json", ".jsonl", ".csv", ".png", ".jpg", ".md"))
+    files.update(path for path in (root / "results").rglob("*")
+                 if path.is_file() and path.suffix in (".json", ".jsonl", ".csv", ".png", ".jpg", ".md", ".log"))
     files.update([
         root / "datasets/action4/video_test_24/frames.json",
         root / "datasets/action4/video_test_24/manual_rois.json",
@@ -62,9 +55,8 @@ def main():
                       "zip_crc_check": "PASS"}, ensure_ascii=False, indent=2))
     videos_output = output.with_name(f"Action4_full_video_results_{stamp}.zip")
     with zipfile.ZipFile(videos_output, "w", compression=zipfile.ZIP_STORED) as archive:
-        for directory in ("resnet_full_video", "transformer_full_video"):
-            for path in sorted((root / "results" / directory).glob("*.mp4")):
-                archive.write(path, path.relative_to(root).as_posix())
+        for path in sorted((root / "results").rglob("*.mp4")):
+            archive.write(path, path.relative_to(root).as_posix())
     with zipfile.ZipFile(videos_output) as archive:
         assert archive.testzip() is None
     print(json.dumps({"full_video_archive": str(videos_output),

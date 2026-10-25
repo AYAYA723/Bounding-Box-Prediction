@@ -1,5 +1,5 @@
 # 训练调优记录
-2026-10-25 更新：以下历史学习率和架构对照均为 coarse-only + argmax 版本。现已按用户选择改为论文完整监督，详细实现与官方代码差异见 [BOXDREAMER_ALIGNMENT.md](BOXDREAMER_ALIGNMENT.md)。旧指标和视频保留，新实验使用独立目录。
+2026-10-25 更新：以下历史学习率和架构对照均为 coarse-only + argmax 版本。现已按用户选择改为论文完整监督，详细实现与官方代码差异见 [BOXDREAMER_ALIGNMENT.md](BOXDREAMER_ALIGNMENT.md)。旧 coarse-only 结果目录已按要求删除，本文保留历史数值摘要；新的完整监督实验单独记录。
 ## 目标与评价方式
 先确认模型能否学到包围盒角点，再看真实视频上的表现。合成数据使用二维角点的平均欧氏像素误差，以及误差不超过 5/10 px 的角点比例；热图 loss 单独记录。视频没有角点 GT，只保存可视化，不报告定量精度。
 
@@ -41,4 +41,24 @@ Transformer 也已完成全视频测试：2850/2850 帧、5700 次目标预测�
 ## 完整监督实现检查
 按论文采用 `L_coarse + 2*L_fine`，补充温度 1 的 logit soft-argmax；预测和 GT 坐标都使用 `2*xy/[W,H]-1` 后计算 SmoothL1。热图保留 `[0,1]`，不改变已有论文公式标签。
 8 项数值与梯度单测通过，两个模型的 fine 独立梯度均能传回 encoder。ResNet 单图 200 步检查：train 角点误差 `122.65 → 20.37 px`，最终 eval 为 `25.17 px`。完整记录为 `results/paper_supervision_implementation/verification.json` 和 `single_image_history.csv`。
-这些是实现与短训练检查，尚未重做本版的 100 轮对照或完整视频测试，不与历史表混算。
+这些是实现与短训练检查，不与完整调参结果混算。
+
+## 完整监督重新调试
+2026-10-25 10:19 启动，输出为 `results/paper_supervision_20261025/`。已清理 `baseline_training`、`baseline_evaluation`、`tuning_20261025`、`transformer_20261025`、`architecture_comparison`、`resnet_full_video`、`transformer_full_video` 七个旧目录，共约 993.8 MiB；清理清单见 `results/coarse_only_cleanup_20261025.json`。保留已有 fine loss 实现检查。
+重新使用固定 16/4 划分、seed=42、batch size=2、AdamW、weight decay=0.01、每组 100 epochs。ResNet 比较 `1e-4 / 3e-4 / 1e-3`，按验证角点平均像素误差选择权重；先完成最佳 ResNet 的完整视频，再以其学习率训练同预算 ViT。全程使用 `coarse + 2*fine` 和温度 1 的 logit soft-argmax。
+每轮记录 train total/coarse/fine；第 1 轮及每 10 轮记录验证三项 loss、角点误差。各阶段命令、源码 SHA256、起止时间、退出状态及日志写入 `pipeline.json` 和 `logs/`。视频仍无角点 GT，仅作可视化检查。
+
+### 本轮最终结果
+运行于 10:19:41–10:28:09，所有阶段均正常退出。ResNet 三组结果如下：
+| 学习率 | 最佳轮次 | 训练平均角点误差 | 验证平均角点误差 | 验证角点 ≤10 px |
+| --- | --- | --- | --- | --- |
+| `0.0001` | 50 | 86.43 px | 101.29 px | 3.125% |
+| `0.0003` | 100 | 66.54 px | 100.28 px | 0.000% |
+| `0.001` | 70 | 98.80 px | 103.10 px | 0.000% |
+| 架构 | 学习率 | 最佳轮次 | 训练平均误差 | 验证平均误差 | 验证角点 ≤10 px |
+| --- | --- | --- | --- | --- | --- |
+| ResNet-18 | `3e-4` | 100 | 66.54 px | 100.28 px | 0% |
+| 小型 ViT | `3e-4` | 70 | 90.30 px | 111.96 px | 0% |
+ResNet 最佳验证 loss：coarse=`0.029396`、fine=`0.034712`、total=`0.098821`；ViT 分别为 `0.028232`、`0.044895`、`0.118022`。fine 已实际参与全部 400 轮训练，日志恒等式检查最大误差小于 `1e-8`。
+ResNet 全视频于 10:24:52 完成，随后才启动 ViT 训练。两版均完成 48 张裁剪图和全部 2850 帧测试；四段 MP4 均为 2850 帧，首尾帧可解码，JSONL 数量和八角点坐标检查通过。完整结果导航为本地 `results/paper_supervision_20261025/README.md`。
+两版预测仍存在角点向内聚集、框体变形；训练误差也较大。下一步优先完成单图精确拟合检查，观察热图与坐标解码、train/eval 差异，再扩充数据。当前数据量仅为 16/4，不把此轮差异推广到架构的普遍优劣。

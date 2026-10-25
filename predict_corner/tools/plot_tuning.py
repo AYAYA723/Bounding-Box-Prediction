@@ -11,27 +11,30 @@ import matplotlib.pyplot as plt
 def main():
     root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--runs", type=Path, default=root / "results/tuning_20261025")
+    parser.add_argument("--runs", type=Path, default=root / "results/paper_supervision_20261025")
     args = parser.parse_args()
     comparison = json.loads((args.runs / "comparison.json").read_text())
-    figure, axes = plt.subplots(1, 2, figsize=(11, 4.2), layout="constrained")
+    figure, axes = plt.subplots(1, 4, figsize=(19, 4.2), layout="constrained")
     for result in comparison:
         run = args.runs / f"lr_{result['learning_rate']:.0e}"
         with (run / "history.csv").open(encoding="utf-8") as stream:
             rows = list(csv.DictReader(stream))
         label = f"lr={result['learning_rate']:g}"
-        line = axes[0].plot([int(row["epoch"]) for row in rows],
-                            [float(row["train_heatmap_loss"]) for row in rows], label=label)[0]
+        for axis, key in zip(axes[:3], ("total", "heatmap", "fine")):
+            line = axis.plot([int(row["epoch"]) for row in rows],
+                             [float(row[f"train_{key}_loss"]) for row in rows], label=label)[0]
         validation = [row for row in rows if row["validation_corner_error_px"]]
-        axes[1].plot([int(row["epoch"]) for row in validation],
+        axes[3].plot([int(row["epoch"]) for row in validation],
                      [float(row["validation_corner_error_px"]) for row in validation],
                      marker="o", markersize=3, color=line.get_color(), label=label)
     for axis in axes:
         axis.set_xlabel("Epoch")
         axis.grid(alpha=0.2)
         axis.legend(frameon=False)
-    axes[0].set_ylabel("Training heatmap SmoothL1 loss")
-    axes[1].set_ylabel("Validation mean corner error (px)")
+    axes[0].set_ylabel("Training total loss: coarse + 2*fine")
+    axes[1].set_ylabel("Training coarse SmoothL1")
+    axes[2].set_ylabel("Training fine SmoothL1")
+    axes[3].set_ylabel("Validation mean corner error (px)")
     figure.savefig(args.runs / "training_curves.png", dpi=180)
     plt.close(figure)
 

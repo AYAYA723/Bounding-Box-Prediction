@@ -40,6 +40,11 @@ python -m predict_corner.tools.predict --device cuda
 python -m predict_corner.tools.test_video --device cuda
 python -m unittest discover -s predict_corner/tests -v
 ```
+按顺序执行完整调试流程：
+```powershell
+python -m predict_corner.tools.run_experiments
+```
+流程为 ResNet 三组学习率对照、最佳 ResNet 的 24 帧裁剪图与完整视频测试、同学习率的 ViT 对照及视频测试。配置、源码 SHA256、阶段起止时间和控制台日志写入该次 `results/paper_supervision_时间/`，曲线分别展示 total、coarse、fine 与验证角点误差。
 评估、图片预测和视频测试默认读取新训练的 `corner_predictor_paper.pt`；该权重需要先运行训练生成。可用 `--weights` 指定其他权重，ViT 同时指定 `--architecture vit`。各工具参数可用 `--help` 查看。
 历史实验与视频记录见 [EXPERIMENTS.md](docs/EXPERIMENTS.md)。三个历史权重放在 `checkpoints/`，其训练和角点解码方式对应旧版，不能将其直接视为完整监督的结果。
 

@@ -26,7 +26,7 @@ class TransformerCornerPredictor(nn.Module):
         )
         self.projection = nn.Conv2d(hidden_dim, 512, kernel_size=1)
 
-        # 与 ResNet 版本使用相同的 decoder 和 heatmap head。
+        # Use the same decoder and heatmap head as the ResNet version.
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(256),
