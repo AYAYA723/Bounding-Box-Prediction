@@ -1,0 +1,58 @@
+{
+  "model": "pinhole",
+  "calibration_kind": "estimated",
+  "width": 3248,
+  "height": 2464,
+  "cam_K": [
+    [
+      1448.9096202758942,
+      0.0,
+      1623.5
+    ],
+    [
+      0.0,
+      1448.9096202758942,
+      1231.5
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "dist_coeffs": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "method": "multiple AprilTag 36h11 views from the original video",
+  "rms_reprojection_px": 0.6710208184738706,
+  "detected_views": 117,
+  "selected_views": 44,
+  "used_views": 43,
+  "tag_ids": [
+    18,
+    19
+  ],
+  "principal_point": "fixed at image center, not independently estimated",
+  "pixel_aspect_ratio": "fx=fy assumed",
+  "distortion": "fixed at zero, not independently measured",
+  "focal_bootstrap_5_95_percentile_px": [
+    1356.1939333083437,
+    1598.5760173452027
+  ],
+  "bootstrap_limitation": "conditional on detected points and geometric assumptions; excludes systematic errors",
+  "assumptions": [
+    "physical markers are planar squares",
+    "intrinsics remain constant across the video",
+    "zero skew",
+    "square pixels",
+    "centered principal point",
+    "negligible lens distortion"
+  ],
+  "not_ground_truth_calibration": true,
+  "source_observations_sha256": "63156de946f43c76879fad356b0df74a7abec0a7a659f75e7227bf8530d10ce0",
+  "source_video_sha256": "016628eca2887220080d823f65d4f9c520ded71be363dbbbee95e175df7bd3e8"
+}

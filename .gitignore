@@ -1,4 +1,4 @@
-# Only project code, documentation and small annotation files are tracked.
+# Only code, entry-point READMEs and small annotations are tracked.
 /*
 !/.gitignore
 !/.gitattributes
@@ -18,18 +18,12 @@
 !/predict_corner/README.md
 !/predict_corner/tools/
 !/predict_corner/tests/
-!/predict_corner/docs/
 !/predict_corner/data_prep/
 /predict_corner/tools/*
 !/predict_corner/tools/*.py
 /predict_corner/tests/*
 !/predict_corner/tests/*.py
-/predict_corner/docs/*
-!/predict_corner/docs/*.md
-!/predict_corner/docs/figures/
-/predict_corner/docs/figures/*
-!/predict_corner/docs/figures/*.png
-!/predict_corner/docs/figures/*.svg
+/predict_corner/docs/
 /predict_corner/data_prep/*
 !/predict_corner/data_prep/*.py
 !/predict_corner/data_prep/*.md
@@ -41,6 +35,7 @@
 /datasets/action4/*
 !/datasets/action4/README.md
 !/datasets/action4/camera.json
+!/datasets/action4/video_camera_estimated.json
 !/datasets/action4/keypoints_3d.json
 !/datasets/action4/models/
 !/datasets/action4/train_pbr/

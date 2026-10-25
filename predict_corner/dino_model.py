@@ -19,6 +19,7 @@ class DinoCornerPredictor(nn.Module):
             source='local', pretrained=pretrained
         )
         self.encoder.eval()
+        # Freeze the pretrained encoder.
         for parameter in self.encoder.parameters():
             parameter.requires_grad = False
         self.decoder = HeatmapDecoder(
@@ -33,13 +34,14 @@ class DinoCornerPredictor(nn.Module):
 
     def train(self, mode=True):
         super().train(mode)
-        self.encoder.eval()
+        self.encoder.eval()  # Keep encoder statistics fixed.
         return self
 
     def encode(self, x):
         H, W = x.shape[-2:]
-        x = F.pad(x, (0, -W % self.patch_size, 0, -H % self.patch_size))
+        x = F.pad(x, (0, -W % self.patch_size, 0, -H % self.patch_size))  # (N, 3, 490, 644)
         with torch.no_grad():
+            # Patch tokens only: (N, 1610, 768).
             return self.encoder.forward_features(x)['x_norm_patchtokens']
 
     def decode(self, features):

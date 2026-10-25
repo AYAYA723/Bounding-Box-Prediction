@@ -5,7 +5,7 @@ from torch import nn
 def spatial_soft_argmax(logits, temperature=0.25):
     """Extract differentiable (x, y) pixel coordinates from pre-Sigmoid logits."""
     if logits.dtype in (torch.float16, torch.bfloat16):
-        logits = logits.float()
+        logits = logits.float()  # Keep coordinate gradients in FP32.
     N, C, H, W = logits.shape
     probabilities = (logits.flatten(start_dim=2) / temperature).softmax(dim=-1).reshape(N, C, H, W)
     xs = torch.arange(W, device=logits.device, dtype=logits.dtype)
@@ -42,5 +42,5 @@ class BoxDreamerLoss(nn.Module):
         pred_normalized = normalize_coordinates(corners_xy, heatmaps.shape[-2:])
         target_normalized = normalize_coordinates(target_corners_xy, heatmaps.shape[-2:])
         fine_loss = self.smooth_l1(pred_normalized, target_normalized)
-        loss = coarse_loss + 2.0 * fine_loss
+        loss = coarse_loss + 2.0 * fine_loss  # Heatmaps + normalized coordinates.
         return loss, coarse_loss, fine_loss

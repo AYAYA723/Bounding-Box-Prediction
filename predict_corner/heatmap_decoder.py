@@ -17,7 +17,7 @@ def position_embedding(grid_size, hidden_dim):
 def unpatchify(patches, grid_size, patch_size, num_corners):
     N = patches.shape[0]
     H, W = grid_size
-    patches = patches.reshape(N, H, W, patch_size, patch_size, num_corners)
+    patches = patches.reshape(N, H, W, patch_size, patch_size, num_corners)  # Restore patch grids.
     return patches.permute(0, 5, 1, 3, 2, 4).reshape(
         N, num_corners, H * patch_size, W * patch_size)
 
@@ -42,7 +42,7 @@ class SelfAttentionBlock(nn.Module):
     def forward(self, tokens):
         N, L, D = tokens.shape
         qkv = self.qkv(self.norm1(tokens)).reshape(N, L, 3, self.num_heads, self.head_dim)
-        q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(dim=0)
+        q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(dim=0)  # (N, heads, L, head_dim)
         attention = F.scaled_dot_product_attention(self.q_norm(q), self.k_norm(k), v)
         attention = attention.transpose(1, 2).reshape(N, L, D)
         tokens = tokens + self.projection(attention)
@@ -81,9 +81,9 @@ class HeatmapDecoder(nn.Module):
     def forward(self, features):
         tokens = self.input_norm(self.input_transform(features))
         tokens = tokens + self.query_embedding.to(tokens.dtype) + self.position_embedding.to(tokens.dtype)
-        tokens = self.transformer(tokens)
-        patches = self.heatmap_projection(self.output_norm(tokens))
+        tokens = self.transformer(tokens)  # (N, 1610, 768)
+        patches = self.heatmap_projection(self.output_norm(tokens))  # (N, 1610, 14*14*8)
         logits = unpatchify(patches, self.grid_size, self.patch_size, self.num_corners)
         H, W = self.image_size
-        logits = logits[:, :, :H, :W]
+        logits = logits[:, :, :H, :W]  # Remove padded pixels.
         return logits.sigmoid(), spatial_soft_argmax(logits, self.decoder_temperature)
