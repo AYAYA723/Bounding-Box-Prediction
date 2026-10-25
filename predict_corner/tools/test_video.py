@@ -11,31 +11,37 @@ from PIL import Image, ImageDraw
 
 from predict_corner.model import CornerPredictor
 from predict_corner.transformer_model import TransformerCornerPredictor
+from predict_corner.dino_model import DinoCornerPredictor
+from predict_corner.data_prep.prepare_video_crops import ANNOTATIONS, camera_rois, load_annotations
 
 
 def main():
     root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--architecture", choices=["resnet", "vit"], default="resnet")
-    parser.add_argument("--weights", type=Path, default=root / "predict_corner/checkpoints/corner_predictor_paper.pt")
-    parser.add_argument("--output", type=Path, default=root / "results/paper_full_video")
+    parser.add_argument("--architecture", choices=["resnet", "vit", "dino"], default="resnet")
+    parser.add_argument("--weights", type=Path)
+    parser.add_argument("--output", type=Path, default=root / "results/roi_fixed_full_video")
+    parser.add_argument("--rois", type=Path, default=ANNOTATIONS)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--temperature", type=float, default=0.25)
     args = parser.parse_args()
+    args.weights = args.weights or root / 'predict_corner/checkpoints' / (
+        'corner_predictor_dino.pt' if args.architecture == 'dino' else 'corner_predictor_paper.pt')
     torch.set_num_threads(4)
     device = torch.device(args.device)
     model_classes = {"resnet": CornerPredictor, "vit": TransformerCornerPredictor}
-    model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
+    if args.architecture == 'dino':
+        model = DinoCornerPredictor(decoder_temperature=args.temperature, pretrained=False).to(device)
+    else:
+        model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
     model.load_state_dict(torch.load(args.weights, map_location=device, weights_only=True))
     model.eval()
     output = args.output
     (output / "frames").mkdir(parents=True, exist_ok=True)
     video_dir = root / "datasets/action4/video_test_24"
     sampled = json.loads((video_dir / "frames.json").read_text())["frames"]
-    rois = json.loads((video_dir / "manual_rois.json").read_text())["rois"]
-    anchors = np.array([entry["frame_id"] for entry in sampled])
+    annotations = load_annotations(args.rois)
     sample_lookup = {entry["frame_id"]: entry["index"] for entry in sampled}
-    boxes = {side: np.array([row["bbox_xyxy"] for row in rois if row["side"] == side]) for side in ("L", "R")}
     edges = json.loads((root / "datasets/action4/keypoints_3d.json").read_text())["edges"]
     video_path = root / "head_left_rgb_raw.mp4"
     capture = cv2.VideoCapture(str(video_path))
@@ -57,8 +63,7 @@ def main():
             success, frame = capture.read()
             assert success, f"Failed to decode frame {frame_id}"
             rgb = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            current_boxes = [np.rint([np.interp(frame_id, anchors, boxes[side][:, axis])
-                                     for axis in range(4)]).astype(int) for side in ("L", "R")]
+            current_boxes = camera_rois(annotations, frame_id)
             crops = [np.asarray(rgb.crop(tuple(box)).resize((640, 480), Image.Resampling.LANCZOS))
                      for box in current_boxes]
             x = torch.from_numpy(np.stack(crops)).permute(0, 3, 1, 2).to(device).float() / 255
@@ -113,7 +118,9 @@ def main():
               "source_video": video_path.name, "input_frames": count, "processed_frames": count,
               "fps": fps, "duration_seconds": count / fps, "target_inferences": count * 2,
               "output_video_frame_counts": encoded_counts, "elapsed_seconds": time.perf_counter() - start,
-              "roi_method": "linear interpolation of 24 manually selected left/right crop rectangles; no automatic detector",
+              "roi_method": "dense manual camera-body anchors, interpolated with padded 4:3 crops; no automatic detector",
+              "roi_anchor_count": len(annotations["keyframes"]),
+              "roi_annotations_sha256": hashlib.sha256(args.rois.read_bytes()).hexdigest(),
               "coordinate_decoder": f"spatial soft-argmax over logits, temperature={model.decoder_temperature:g}",
               "video_ground_truth_available": False}
     (output / "run.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

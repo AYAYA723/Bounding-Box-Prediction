@@ -26,9 +26,14 @@
 !/predict_corner/tests/*.py
 /predict_corner/docs/*
 !/predict_corner/docs/*.md
+!/predict_corner/docs/figures/
+/predict_corner/docs/figures/*
+!/predict_corner/docs/figures/*.png
+!/predict_corner/docs/figures/*.svg
 /predict_corner/data_prep/*
 !/predict_corner/data_prep/*.py
 !/predict_corner/data_prep/*.md
+!/predict_corner/data_prep/video_roi_annotations.json
 
 # Keep only small dataset metadata and annotations.
 /datasets/*

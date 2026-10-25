@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader, Subset
 from predict_corner.dataset import CornerDataset
 from predict_corner.model import CornerPredictor
 from predict_corner.transformer_model import TransformerCornerPredictor
+from predict_corner.dino_model import DinoCornerPredictor
 from predict_corner.supervision import BoxDreamerLoss
 
 
@@ -80,17 +81,22 @@ def save_preview(report, scene_dir, output):
 def main():
     root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--architecture", choices=["resnet", "vit"], default="resnet")
-    parser.add_argument("--weights", type=Path, default=root / "predict_corner/checkpoints/corner_predictor_paper.pt")
+    parser.add_argument("--architecture", choices=["resnet", "vit", "dino"], default="resnet")
+    parser.add_argument("--weights", type=Path)
     parser.add_argument("--output", type=Path, default=root / "results/paper_evaluation")
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--temperature", type=float, default=0.25)
     args = parser.parse_args()
+    args.weights = args.weights or root / 'predict_corner/checkpoints' / (
+        'corner_predictor_dino.pt' if args.architecture == 'dino' else 'corner_predictor_paper.pt')
     torch.set_num_threads(4)
     device = torch.device(args.device)
     dataset = CornerDataset(root / "datasets/action4/train_pbr/000000")
     model_classes = {"resnet": CornerPredictor, "vit": TransformerCornerPredictor}
-    model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
+    if args.architecture == 'dino':
+        model = DinoCornerPredictor(decoder_temperature=args.temperature, pretrained=False).to(device)
+    else:
+        model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
     model.load_state_dict(torch.load(args.weights, map_location=device, weights_only=True))
     report = evaluate(model, dataset, list(range(len(dataset))), device)
     save_preview(report, dataset.scene_dir, args.output)

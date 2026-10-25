@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import numpy as np
 import torch
@@ -59,3 +60,24 @@ class AppearanceDataset(Dataset):
         background = TF.to_pil_image(F.interpolate(noise, size=x.shape[-2:], mode="bilinear", align_corners=False)[0])
         image = Image.composite(image, background, self.masks[index])
         return self.transform(image), heatmaps, corners_xy
+
+
+class RenderedCornerDataset(Dataset):
+    """Read rendered RGB and coordinates; construct dense targets on the GPU."""
+    def __init__(self, scene_dir):
+        self.scene_dir = Path(scene_dir)
+        labels = json.loads((self.scene_dir / "keypoints_2d.json").read_text())
+        self.ids = sorted(labels["images"], key=int)
+        self.corners = [torch.tensor(labels["images"][key]["corners_2d"], dtype=torch.float32) for key in self.ids]
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(.485, .456, .406), std=(.229, .224, .225))
+        ])
+
+    def __len__(self):
+        return len(self.ids)
+
+    def __getitem__(self, index):
+        with Image.open(self.scene_dir / "rgb" / f"{int(self.ids[index]):06d}.png") as image:
+            x = self.transform(image.convert("RGB"))
+        return x, self.corners[index]

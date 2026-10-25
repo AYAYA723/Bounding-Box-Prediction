@@ -8,25 +8,30 @@ from torchvision import transforms
 
 from predict_corner.model import CornerPredictor
 from predict_corner.transformer_model import TransformerCornerPredictor
+from predict_corner.dino_model import DinoCornerPredictor
 
 
 def main():
     project_dir = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--architecture", choices=["resnet", "vit"], default="resnet")
+    parser.add_argument("--architecture", choices=["resnet", "vit", "dino"], default="resnet")
     parser.add_argument("--input", type=Path,
                         default=project_dir / "datasets/action4/video_test_24/crops")
     parser.add_argument("--output", type=Path,
                         default=project_dir / "results/paper_video_test_24")
-    parser.add_argument("--weights", type=Path,
-                        default=project_dir / "predict_corner/checkpoints/corner_predictor_paper.pt")
+    parser.add_argument("--weights", type=Path)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--temperature", type=float, default=0.25)
     args = parser.parse_args()
+    args.weights = args.weights or project_dir / 'predict_corner/checkpoints' / (
+        'corner_predictor_dino.pt' if args.architecture == 'dino' else 'corner_predictor_paper.pt')
 
     device = torch.device(args.device)
     model_classes = {"resnet": CornerPredictor, "vit": TransformerCornerPredictor}
-    model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
+    if args.architecture == 'dino':
+        model = DinoCornerPredictor(decoder_temperature=args.temperature, pretrained=False).to(device)
+    else:
+        model = model_classes[args.architecture](decoder_temperature=args.temperature).to(device)
     model.load_state_dict(torch.load(args.weights, map_location=device, weights_only=True))
     model.eval()
     transform = transforms.Compose([
